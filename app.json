@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "AgentHQ",
+    "slug": "agenthq",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#06070a",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.agenthq.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "AgentHQ uses your photo library to set agent profile pictures.",
+        "NSCameraUsageDescription": "AgentHQ uses your camera to capture agent profile pictures.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.agenthq.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "color": "#a3e635"
+        }
+      ]
+    ],
+    "scheme": "agenthq"
+  }
+}
