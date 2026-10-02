@@ -102,8 +102,7 @@ AgentHQ is our entry for LA Hacks 2026 (October 17-18, UCLA). The demo goal: con
 
 ## Team
 
-- **Julieth Avina:** founder, product and app
-- **Breanna Velasco:** agent integration and collaboration
+Team: Julieth Avina - founder. Product, app, and agent integration.
 
 ## License
 
