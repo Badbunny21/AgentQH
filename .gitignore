@@ -10,3 +10,11 @@ dist/
 *.orig.*
 web-build/
 website/.next/
+
+# Supabase CLI local state
+supabase/.temp/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
