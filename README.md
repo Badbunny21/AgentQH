@@ -74,7 +74,6 @@ Edit `.env` and fill in your own Supabase project values:
 | --- | --- |
 | `EXPO_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon (public) key |
-| `EXPO_PUBLIC_OPENAI_API_KEY` | Optional, local development fallback only |
 
 Never commit `.env` or any real keys. `.env` is already in `.gitignore`.
 
