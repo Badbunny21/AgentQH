@@ -357,14 +357,7 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
 
       {/* Sticky bottom bar */}
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 20, paddingBottom: insets.bottom + 20, flexDirection: 'row', gap: 10, backgroundColor: C.c0, borderTopWidth: 1, borderTopColor: C.border }}>
-        <PrimaryButton
-          onPress={() => navigation.navigate('Chat', { agentId: agent.id })}
-          icon="msg"
-          style={{ flex: 2 }}
-        >
-          Chat
-        </PrimaryButton>
-        <SecondaryButton style={{ flex: 1 }} onPress={() => setShowAddTask(true)}>Assign task</SecondaryButton>
+        <PrimaryButton style={{ flex: 1 }} onPress={() => setShowAddTask(true)}>Assign task</PrimaryButton>
       </View>
 
       <AddTaskSheet visible={showAddTask} onClose={() => setShowAddTask(false)} defaultAgentId={agent.id} />
