@@ -14,7 +14,6 @@ import { useAgents } from '../contexts/AgentsContext';
 import { C, FONTS } from '../constants/theme';
 import AgentAvatar from '../components/AgentAvatar';
 import PlatformLogo from '../components/PlatformLogo';
-import CreateAgentPanel from '../components/CreateAgentPanel';
 import { PrimaryButton } from '../components/Buttons';
 
 type Props = {
@@ -25,10 +24,6 @@ export default function MigrationScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { completeOnboarding } = useAuth();
   const { agents } = useAgents();
-
-  const handleAgentCreated = (agentId: string) => {
-    navigation.navigate('Chat', { agentId });
-  };
 
   const handleContinue = async () => {
     await completeOnboarding();
@@ -43,20 +38,16 @@ export default function MigrationScreen({ navigation }: Props) {
             WELCOME TO AGENTHQ
           </Text>
           <Text style={{ fontFamily: FONTS.semibold, fontSize: 28, color: C.text, letterSpacing: -0.9, lineHeight: 30.8, marginBottom: 10 }}>
-            Create your first{'\n'}agent
+            Connect your first{'\n'}agent
           </Text>
           <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, letterSpacing: -0.2, lineHeight: 20 }}>
-            Pick a template and start chatting in seconds — no API keys, no Telegram setup. Import an existing bot later if you want.
+            Bring in an agent you already run on Telegram or Discord. AgentHQ shows its work and sends it commands. The agent keeps thinking where it lives.
           </Text>
-        </View>
-
-        <View style={{ paddingHorizontal: 24, marginBottom: 28 }}>
-          <CreateAgentPanel onAgentCreated={handleAgentCreated} />
         </View>
 
         <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
           <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: C.textDim, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>
-            Already have a bot?
+            Connect an agent
           </Text>
           <View style={{ gap: 10 }}>
             <TouchableOpacity
@@ -116,7 +107,7 @@ export default function MigrationScreen({ navigation }: Props) {
               {agents.map(agent => (
                 <TouchableOpacity
                   key={agent.id}
-                  onPress={() => navigation.navigate('Chat', { agentId: agent.id })}
+                  onPress={() => navigation.navigate('AgentProfile', { agentId: agent.id })}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -142,7 +133,7 @@ export default function MigrationScreen({ navigation }: Props) {
 
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: insets.bottom + 24, gap: 10 }}>
         <PrimaryButton onPress={handleContinue} icon="arrow" disabled={agents.length === 0}>
-          {agents.length === 0 ? 'Create an agent to continue' : 'Continue to home'}
+          {agents.length === 0 ? 'Connect an agent to continue' : 'Continue to home'}
         </PrimaryButton>
       </View>
     </View>
