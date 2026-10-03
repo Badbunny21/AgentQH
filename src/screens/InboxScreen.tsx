@@ -96,7 +96,7 @@ export default function InboxScreen({ navigation }: Props) {
           <View style={{ marginHorizontal: 16, padding: 28, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, alignItems: 'center' }}>
             <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text, marginBottom: 8 }}>No conversations yet</Text>
             <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, textAlign: 'center', lineHeight: 20, marginBottom: 16 }}>
-              Add an agent, then start a chat from Home.
+              Connect an agent to see its activity here.
             </Text>
             <GhostChip icon="plus" onPress={() => navigation.navigate('AddAgent')}>Add agent</GhostChip>
           </View>
@@ -108,7 +108,7 @@ export default function InboxScreen({ navigation }: Props) {
             <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, textAlign: 'center', lineHeight: 20, marginBottom: activeWorkspace ? 16 : 0 }}>
               {activeWorkspace
                 ? 'Assign agents to this workspace or clear the filter to see all threads.'
-                : 'Open a chat with one of your agents to start a thread.'}
+                : 'Activity from your connected agents will show up here.'}
             </Text>
             {activeWorkspace ? (
               <GhostChip icon="folder" onPress={() => navigation.navigate('Workspaces')}>Manage workspace</GhostChip>
@@ -125,7 +125,7 @@ export default function InboxScreen({ navigation }: Props) {
               {items.map(item => (
                 <TouchableOpacity
                   key={item.agentId}
-                  onPress={() => navigation.navigate('Chat', { agentId: item.agentId })}
+                  onPress={() => navigation.navigate('AgentProfile', { agentId: item.agentId })}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',

@@ -14,7 +14,6 @@ import InboxScreen from '../screens/InboxScreen';
 import TasksScreen from '../screens/TasksScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
 import AgentProfileScreen from '../screens/AgentProfileScreen';
-import ChatScreen from '../screens/ChatScreen';
 import UpgradeScreen from '../screens/UpgradeScreen';
 import MemoryScreen from '../screens/MemoryScreen';
 import AddAgentScreen from '../screens/AddAgentScreen';
@@ -37,7 +36,6 @@ export type RootStackParamList = {
   Migration: undefined;
   Main: undefined;
   AgentProfile: { agentId: string };
-  Chat: { agentId: string };
   Upgrade: undefined;
   Memory: undefined;
   Costs: undefined;
@@ -105,14 +103,12 @@ export default function RootNavigator() {
             <Stack.Screen name="Migration" component={MigrationScreen} />
             <Stack.Screen name="ImportTelegram" component={ImportTelegramScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="ImportDiscord" component={ImportDiscordScreen} options={{ animation: 'slide_from_right' }} />
-            <Stack.Screen name="Chat" component={ChatScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="AgentProfile" component={AgentProfileScreen} options={{ animation: 'slide_from_right' }} />
           </>
         ) : (
           <>
             <Stack.Screen name="Main" component={TabNavigator} />
             <Stack.Screen name="AgentProfile" component={AgentProfileScreen} options={{ animation: 'slide_from_right' }} />
-            <Stack.Screen name="Chat" component={ChatScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="Upgrade" component={UpgradeScreen} options={{ animation: 'slide_from_bottom' }} />
             <Stack.Screen name="Memory" component={MemoryScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="Costs" component={CostScreen} options={{ animation: 'slide_from_right' }} />
