@@ -24,6 +24,7 @@ import PlatformLogo from '../components/PlatformLogo';
 import Icon from '../components/Icon';
 import { PrimaryButton, SecondaryButton } from '../components/Buttons';
 import AddTaskSheet from '../components/AddTaskSheet';
+import AgentCommandPanel from '../components/AgentCommandPanel';
 import TaskRow from '../components/TaskRow';
 import TaskDetailSheet from '../components/TaskDetailSheet';
 import { useTasks, Task } from '../contexts/TasksContext';
@@ -249,6 +250,10 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
             value={stats?.hoursThisWeek != null && stats.hoursThisWeek > 0 ? `${stats.hoursThisWeek}h` : '<1h'}
             label="This week"
           />
+        </View>
+
+        <View style={{ paddingHorizontal: 20 }}>
+          <AgentCommandPanel agentId={agent.id} />
         </View>
 
         {/* Tasks — open + recent done */}

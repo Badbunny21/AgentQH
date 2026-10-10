@@ -3,3 +3,10 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+# Agents authenticate with x-agent-key, not a user JWT.
+[functions.agent-commands-poll]
+verify_jwt = false
+
+[functions.agent-report]
+verify_jwt = false

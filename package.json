@@ -8,6 +8,7 @@
     "android": "REACT_NATIVE_PACKAGER_HOSTNAME=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null) expo start --android --lan",
     "ios": "REACT_NATIVE_PACKAGER_HOSTNAME=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null) expo start --ios --lan",
     "web": "expo start --web",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "build:ios": "eas build --platform ios --profile preview",
     "build:ios:prod": "eas build --platform ios --profile production",
     "submit:ios": "eas submit --platform ios --profile production"
