@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AgentHQ - Mission control for the AI agents you already use</title>
+<meta name="description" content="AgentHQ connects to your AI agents on Telegram, Discord and more, shows their live work, and lets you send them commands from your phone.">
+<meta name="theme-color" content="#06070a">
+<meta property="og:title" content="AgentHQ - Mission control for your AI agents">
+<meta property="og:description" content="See what your AI agents are doing and tell them what to do next, from your phone. Your agent keeps thinking where it already lives.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+html { scroll-behavior: smooth; }
+html, body, #root { margin: 0; min-height: 100%; }
+body { background: #06070a; }
+
+.file-card.ahq { display:block; max-width: 1080px; margin: 0 auto; padding: 0; background: #06070a; color: #f5f5f7; overflow: hidden; }
+.site {
+  --c0: #06070a; --c1: #0d0f15; --c2: #13161f; --c3: #1c2030;
+  --text: #f5f5f7; --dim: rgba(245,245,247,0.62); --muted: rgba(245,245,247,0.38);
+  --lime: #a3e635; --cyan: #22d3ee; --magenta: #e879f9;
+  --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.14);
+  --grad: linear-gradient(90deg, #a3e635, #22d3ee, #e879f9);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  background: var(--c0); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased;
+  font-size: 15px; letter-spacing: -0.01em;
+}
+.site * { box-sizing: border-box; }
+.site a { color: inherit; text-decoration: none; }
+.site b { font-weight: 600; }
+.site p, .site h1, .site h2, .site figure, .site blockquote { margin: 0; }
+.dim { color: var(--dim); }
+.muted { color: var(--muted); }
+.center { text-align: center; }
+.mono { font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; }
+.gradient-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; background: rgba(6,7,10,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-size: 16px; letter-spacing: -0.3px; }
+.logo-slot { width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(34,211,238,0.5); display: grid; place-items: center; background: linear-gradient(135deg, rgba(163,230,53,0.12), rgba(34,211,238,0.12), rgba(232,121,249,0.12)); }
+.logo-slot.small { width: 30px; height: 30px; border-radius: 9px; }
+.logo-slot span { font-size: 13px; font-weight: 800; letter-spacing: -0.06em; color: #a3e635; }
+
+.btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 26px; border-radius: 999px; border: none; font: inherit; font-weight: 600; font-size: 15px; color: #0a0a0a !important; background: var(--grad); cursor: pointer; transition: opacity .2s, transform .2s; }
+.btn-primary:hover { opacity: .92; transform: translateY(-1px); }
+.btn-primary.compact { min-height: 40px; padding: 0 16px; font-size: 13.5px; }
+.btn-ghost { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--border-strong); background: transparent; color: var(--text); font: inherit; font-weight: 500; font-size: 15px; cursor: pointer; }
+
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); font-weight: 500; margin-bottom: 14px; }
+.hero { position: relative; padding: 44px 20px 40px; display: grid; gap: 40px; }
+.glow { position: absolute; inset: -120px -80px auto auto; width: 420px; height: 420px; border-radius: 50%; background: radial-gradient(circle, rgba(34,211,238,0.18), rgba(163,230,53,0.08) 45%, transparent 70%); pointer-events: none; }
+.glow.small { inset: auto auto -160px -120px; background: radial-gradient(circle, rgba(232,121,249,0.16), transparent 65%); }
+.hero-copy { position: relative; }
+.hero h1 { font-size: 38px; line-height: 1.05; letter-spacing: -1.4px; font-weight: 700; }
+.lead { margin-top: 18px !important; font-size: 16.5px; line-height: 1.55; color: var(--dim); max-width: 520px; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.hero-visual { position: relative; display: grid; justify-items: center; gap: 14px; }
+
+.phone { width: 286px; border-radius: 42px; padding: 10px; background: #1a1d26; border: 1px solid var(--border-strong); box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03) inset; position: relative; }
+.phone-notch { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); width: 84px; height: 22px; border-radius: 20px; background: #000; z-index: 2; }
+.phone-screen { background: var(--c0); border-radius: 33px; padding: 50px 14px 12px; display: grid; gap: 8px; }
+.phone-title { font-size: 24px; font-weight: 600; letter-spacing: -0.7px; line-height: 1; margin-top: -2px !important; }
+.phone-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 4px 0 2px; }
+.phone-stats div { background: var(--c1); border: 1px solid var(--border); border-radius: 12px; padding: 8px; display: grid; gap: 2px; }
+.phone-stats b { font-size: 18px; letter-spacing: -0.6px; line-height: 1; }
+.phone-stats .mono { font-size: 7.5px; }
+.agent { display: flex; gap: 10px; align-items: center; background: var(--c1); border: 1px solid var(--border); border-radius: 14px; padding: 9px; }
+.avatar { position: relative; width: 38px; height: 38px; border-radius: 11px; border: 1px solid; display: grid; place-items: center; flex: none; }
+.avatar i { position: absolute; right: -2px; bottom: -2px; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--c1); }
+.agent-body { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.agent-top { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; }
+.agent-activity { font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agent .mono { font-size: 7.5px; }
+.badge { font-size: 8px; letter-spacing: .1em; text-transform: uppercase; border: 1px solid; border-radius: 999px; padding: 2px 6px; font-weight: 600; }
+.phone-sub { font-size: 13px; font-weight: 600; margin-top: 4px !important; }
+.feed { display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 6px 2px; border-bottom: 1px solid var(--border); }
+.feed .mono { margin-left: auto; font-size: 8px; }
+.tabbar { display: flex; justify-content: space-around; margin-top: 6px; padding: 9px 4px; border-radius: 16px; background: var(--c2); border: 1px solid var(--border); font-size: 10px; color: var(--muted); }
+.tabbar .on { color: var(--lime); font-weight: 600; }
+
+.section { position: relative; padding: 52px 20px; border-top: 1px solid var(--border); }
+.section h2 { font-size: 28px; line-height: 1.12; letter-spacing: -0.9px; font-weight: 700; max-width: 640px; }
+.card { background: var(--c1); border: 1px solid var(--border); border-radius: 18px; padding: 18px; display: grid; gap: 6px; align-content: start; }
+.card p { font-size: 14px; line-height: 1.5; }
+.pain-grid, .steps, .feature-grid, .shots, .rule-list { display: grid; gap: 12px; margin-top: 26px; }
+.for-who { margin-top: 20px !important; font-size: 15px; max-width: 560px; }
+.step-n { font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1.1; justify-self: start; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 22px; }
+.flow-node { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--c2); font-size: 13.5px; font-weight: 500; }
+.flow-node.hq { border-color: rgba(163,230,53,.5); color: var(--lime); }
+.flow-arrow { color: var(--muted); font-size: 14px; }
+.flow-arrow.back { color: var(--cyan); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.quote { margin-top: 26px !important; padding: 18px 20px; border-left: 3px solid var(--lime); background: linear-gradient(90deg, rgba(163,230,53,.08), transparent); border-radius: 0 14px 14px 0; font-size: 17px; line-height: 1.45; font-weight: 500; letter-spacing: -0.2px; }
+.feature-grid { grid-template-columns: 1fr 1fr; }
+.feature-mark { width: 22px; height: 4px; border-radius: 4px; margin-bottom: 6px; }
+.feature b { font-size: 15px; }
+.shots { grid-template-columns: repeat(4, minmax(150px, 1fr)); overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.shot { scroll-snap-align: start; display: grid; gap: 10px; }
+.shot-frame { aspect-ratio: 9 / 19.5; border-radius: 26px; border: 1px solid rgba(34,211,238,0.5); background: linear-gradient(160deg, var(--c1), var(--c0)); display: grid; place-items: center; align-content: center; gap: 8px; }
+.shot-plus { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--border-strong); color: var(--dim); font-size: 18px; }
+.shot figcaption { font-size: 13px; color: var(--dim); text-align: center; }
+.rule { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.rule-n { color: var(--lime); padding-top: 3px; }
+.rule p { font-size: 14px; margin-top: 2px !important; }
+.rule-list { gap: 0; margin-top: 14px; }
+.notify { overflow: hidden; }
+.notify-lead { margin-top: 12px !important; font-size: 15.5px; }
+.signup-form, .signup-done { position: relative; margin-top: 24px; background: var(--c1); border: 1px solid var(--border-strong); border-radius: 22px; padding: 20px; display: grid; gap: 14px; max-width: 480px; }
+.signup-form label { display: grid; gap: 7px; }
+.signup-form input, .signup-form select { width: 100%; min-height: 48px; border-radius: 12px; border: 1px solid var(--border-strong); background: var(--c0); color: var(--text); padding: 0 14px; font: inherit; font-size: 16px; appearance: none; -webkit-appearance: none; }
+.signup-form input::placeholder { color: var(--muted); }
+.signup-form input:focus, .signup-form select:focus { outline: none; border-color: var(--lime); }
+.signup-form .btn-primary { margin-top: 4px; width: 100%; }
+.signup-done-title { font-size: 24px; font-weight: 700; letter-spacing: -0.7px; }
+.signup-done .btn-ghost { justify-self: start; margin-top: 8px; min-height: 42px; font-size: 14px; }
+.faq { display: grid; margin-top: 4px; }
+.faq details { border-bottom: 1px solid var(--border); padding: 4px 0; }
+.faq summary { cursor: pointer; list-style: none; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 600; font-size: 15.5px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; color: var(--lime); font-size: 20px; font-weight: 400; }
+.faq details[open] summary::after { content: '–'; }
+.faq details p { padding: 0 0 14px; font-size: 14.5px; }
+.footer { padding: 32px 20px 40px; border-top: 1px solid var(--border); display: grid; gap: 12px; }
+.footer p { font-size: 13.5px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; color: var(--dim); align-items: center; }
+
+@media (min-width: 768px) {
+  .nav { padding: 18px 36px; }
+  .hero { grid-template-columns: 1.1fr 0.9fr; align-items: center; padding: 72px 36px 64px; }
+  .hero h1 { font-size: 54px; letter-spacing: -2px; }
+  .section { padding: 72px 36px; }
+  .section h2 { font-size: 38px; letter-spacing: -1.3px; }
+  .pain-grid, .steps { grid-template-columns: repeat(3, 1fr); }
+  .feature-grid { grid-template-columns: repeat(4, 1fr); }
+  .shots { overflow: visible; }
+  .rule-list { grid-template-columns: 1fr 1fr; column-gap: 32px; }
+  .footer { padding: 36px; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
+}
+.site section { scroll-margin-top: 24px; }
+.glow.small { inset: auto auto -140px 10%; }
+
+.shots { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.14) transparent; } .shots::-webkit-scrollbar { height: 4px; } .shots::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 4px; }
+.shots { grid-template-columns: repeat(4, minmax(210px, 1fr)); }
+.shot-frame.filled { border: 1px solid var(--border-strong); background: #1a1d26; padding: 6px; place-items: stretch; align-content: stretch; box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+.m-screen { background: var(--c0); border-radius: 21px; padding: 26px 10px 8px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; font-size: 10.5px; line-height: 1.35; position: relative; }
+.m-screen::before { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 54px; height: 14px; border-radius: 10px; background: #000; }
+.m-mono { font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.m-h { font-size: 19px; font-weight: 600; letter-spacing: -.5px; line-height: 1.05; }
+.m-dim { color: var(--dim); font-size: 9.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; }
+.m-stats div { background: var(--c1); border: 1px solid var(--border); border-radius: 10px; padding: 6px; display: grid; gap: 1px; }
+.m-stats b { font-size: 15px; line-height: 1; }
+.m-stats span { font-size: 6.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.m-card, .m-task, .m-act { display: flex; gap: 7px; align-items: center; background: var(--c1); border: 1px solid var(--border); border-radius: 11px; padding: 7px; }
+.m-b { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.m-row { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+.m-av { flex: none; width: 26px; height: 26px; border-radius: 9px; border: 1px solid; display: grid; place-items: center; font-weight: 700; font-size: 11px; }
+.m-badge { flex: none; font-size: 6.5px; letter-spacing: .1em; text-transform: uppercase; border: 1px solid; border-radius: 999px; padding: 2px 5px; font-weight: 600; }
+.m-sub { font-size: 11px; font-weight: 600; margin-top: 2px; }
+.m-feed { display: flex; align-items: center; gap: 6px; font-size: 9.5px; padding: 4px 1px; border-bottom: 1px solid var(--border); }
+.m-feed i, .m-step i { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+.m-feed span { margin-left: auto; font-size: 7.5px; color: var(--muted); }
+.m-tab { margin-top: auto; display: flex; justify-content: space-around; padding: 7px 2px; border-radius: 13px; background: var(--c2); border: 1px solid var(--border); font-size: 8.5px; color: var(--muted); }
+.m-tab .on { color: var(--lime); font-weight: 600; }
+.m-chathead { display: flex; gap: 8px; align-items: center; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
+.m-chathead div { display: grid; gap: 1px; }
+.m-msgs { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.m-bub { max-width: 86%; padding: 6px 8px; border-radius: 12px 12px 12px 4px; background: var(--c2); border: 1px solid var(--border); font-size: 9.5px; }
+.m-bub.me { align-self: flex-end; border-radius: 12px 12px 4px 12px; background: rgba(163,230,53,.14); border-color: rgba(163,230,53,.3); }
+.m-step { display: flex; align-items: center; gap: 6px; font-size: 8.5px; color: var(--dim); padding-left: 4px; }
+.m-bub.typing { display: flex; gap: 3px; padding: 8px 10px; }
+.m-bub.typing span { width: 4px; height: 4px; border-radius: 50%; background: var(--dim); }
+.m-input { margin-top: auto; border: 1px solid var(--border-strong); border-radius: 999px; padding: 7px 10px; color: var(--muted); font-size: 9.5px; background: var(--c1); }
+.m-chips { display: flex; gap: 5px; }
+.m-chips span { font-size: 8.5px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--dim); }
+.m-chips .on { color: #0a0a0a; background: var(--lime); border-color: var(--lime); font-weight: 600; }
+.m-tt { font-size: 10px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-check { flex: none; width: 13px; height: 13px; border-radius: 4px; border: 1.5px solid var(--border-strong); }
+.m-task.done .m-tt { text-decoration: line-through; color: var(--muted); }
+.m-ic { flex: none; width: 24px; height: 24px; border-radius: 8px; border: 1px solid; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+.m-act .m-mono { flex: none; }
+.shots-note { margin-top: 14px !important; text-align: center; }
+</style>
+</head>
+<body>
+<main class="file-card ahq" data-width="fluid"><div class="site"><nav class="nav"><a class="brand" href="#top"><div class="logo-slot small" aria-hidden="true"><span>HQ</span></div><b>AgentHQ</b></a><a class="btn-primary compact" href="#how">How it works</a></nav><section class="hero" id="top"><div class="glow"></div><div class="hero-copy"><p class="eyebrow"><span class="dot" style="background:#a3e635"></span>Coming soon to iPhone</p><h1>Mission control for the <span class="gradient-text">AI agents you already use.</span></h1><p class="lead">AgentHQ connects to your agents on Telegram, Discord and more, shows their live work, and lets you send them commands from your phone. Your agent keeps thinking where it already lives.</p><div class="cta-row"><a class="btn-primary" href="#how">See how it works</a><a class="btn-ghost" href="#inside">Take a look inside</a></div></div><div class="hero-visual"><div class="phone" aria-label="Mockup of the AgentHQ home screen"><div class="phone-notch"></div><div class="phone-screen"><p class="mono dim">Good morning</p><p class="phone-title">Your crew<span style="color:#a3e635">.</span></p><div class="phone-stats"><div><b>3</b><span class="mono dim">Agents</span></div><div><b>5</b><span class="mono dim">Tasks</span></div><div><b>1</b><span class="mono dim">Needs you</span></div></div><div class="agent"><div class="avatar" style="border-color:#a3e63555;background:#a3e6351a"><svg viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><path d="M50 22 L70 56 L30 56 Z" fill="none" stroke="#a3e635" stroke-width="5"></path><path d="M50 44 L78 78 L22 78 Z" fill="#a3e635"></path></svg><i style="background:#a3e635"></i></div><div class="agent-body"><div class="agent-top"><b>Maya</b><span class="badge" style="color:#a3e635;border-color:#a3e63555">Working</span></div><span class="agent-activity">Summarizing market signals</span><span class="mono muted">Research Lead · Telegram</span></div></div><div class="agent"><div class="avatar" style="border-color:#22d3ee55;background:#22d3ee1a"><svg viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><path d="M50 18 L78 34 L78 66 L50 82 L22 66 L22 34 Z" fill="none" stroke="#22d3ee" stroke-width="5"></path><path d="M50 18 L50 50 L78 66 M50 50 L22 66 M50 50 L50 82" stroke="#22d3ee" stroke-width="5" fill="none"></path></svg><i style="background:#22d3ee"></i></div><div class="agent-body"><div class="agent-top"><b>Finn</b><span class="badge" style="color:#22d3ee;border-color:#22d3ee55">Review</span></div><span class="agent-activity">Finished: fix login bug</span><span class="mono muted">Code Helper · Discord</span></div></div><div class="agent"><div class="avatar" style="border-color:#e879f955;background:#e879f91a"><svg viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><path d="M50 18 L56 44 L82 50 L56 56 L50 82 L44 56 L18 50 L44 44 Z" fill="#e879f9"></path><circle cx="76" cy="24" r="5" fill="#e879f9"></circle></svg><i style="background:#fbbf24"></i></div><div class="agent-body"><div class="agent-top"><b>Iris</b><span class="badge" style="color:#fbbf24;border-color:#fbbf2455">Away</span></div><span class="agent-activity">Waiting for your OK</span><span class="mono muted">Brand Voice · Telegram</span></div></div><p class="phone-sub">Today&#x27;s activity</p><div class="feed"><span class="dot" style="background:#a3e635"></span>Maya got your command<span class="mono muted">2m</span></div><div class="feed"><span class="dot" style="background:#22d3ee"></span>Finn finished &quot;Fix login bug&quot;<span class="mono muted">14m</span></div><div class="tabbar"><span class="on">Home</span><span>Inbox</span><span>Tasks</span><span>You</span></div></div></div><p class="mono muted center">Mockup · real screenshots coming soon</p></div></section><section class="section"><p class="eyebrow">The problem</p><h2>Your agent works in a chat app. You only see the last message.</h2><div class="pain-grid"><div class="card"><b>Buried</b><p class="dim">Its updates get lost under everyone else&#x27;s texts.</p></div><div class="card"><b>In the dark</b><p class="dim">You can&#x27;t tell if it&#x27;s working, stuck, or waiting on you.</p></div><div class="card"><b>Silent breaks</b><p class="dim">It can break quietly and you won&#x27;t know until it&#x27;s too late.</p></div></div><p class="dim for-who">Made for small business owners and solo founders who run AI agents but don&#x27;t have time to babysit them.</p></section><section class="section" id="how"><p class="eyebrow">How it works</p><h2>Three steps. No new brain.</h2><div class="steps"><div class="step card"><span class="step-n gradient-text">01</span><b>Connect your agent</b><p class="dim">Link the agent you already run on Telegram or Discord. It stays right where it is.</p></div><div class="step card"><span class="step-n gradient-text">02</span><b>Send a command</b><p class="dim">Tap out what you need from your phone. AgentHQ passes it straight to your agent.</p></div><div class="step card"><span class="step-n gradient-text">03</span><b>Watch it happen</b><p class="dim">Your agent says it got the command, reports progress, and finishes or fails where you can see it, with a full record.</p></div></div><div class="flow" aria-label="You, then AgentHQ, then your agent, then status back to you"><span class="flow-node">You</span><span class="flow-arrow">→</span><span class="flow-node hq">AgentHQ</span><span class="flow-arrow">→</span><span class="flow-node">Your agent</span><span class="flow-arrow back">↩ status</span></div><blockquote class="quote">&quot;AgentHQ never thinks for your agent. It&#x27;s a window and a remote control, not a new brain.&quot;</blockquote></section><section class="section"><p class="eyebrow">What it does</p><h2>Everything your agents are doing, on one screen.</h2><div class="feature-grid"><div class="card feature"><span class="feature-mark" style="background:#a3e635"></span><b>Live status</b><p class="dim">See if each agent is working, done, stuck, or offline.</p></div><div class="card feature"><span class="feature-mark" style="background:#22d3ee"></span><b>Tasks and dispatch</b><p class="dim">A task board where you hand work to the right agent.</p></div><div class="card feature"><span class="feature-mark" style="background:#e879f9"></span><b>Activity feed</b><p class="dim">Every command and every step, in plain language.</p></div><div class="card feature"><span class="feature-mark" style="background:#a3e635"></span><b>Handoffs</b><p class="dim">Pass work from one agent to another without copy and paste.</p></div><div class="card feature"><span class="feature-mark" style="background:#22d3ee"></span><b>Memory</b><p class="dim">What your agents know about your work, in one place.</p></div><div class="card feature"><span class="feature-mark" style="background:#e879f9"></span><b>Alerts</b><p class="dim">A push notification when an agent errors, gets stuck, or goes quiet.</p></div><div class="card feature"><span class="feature-mark" style="background:#a3e635"></span><b>Pause and Stop</b><p class="dim">One tap to hold or cancel a task. Always there.</p></div></div></section><section class="section" id="inside"><p class="eyebrow">Take a look inside</p><h2>What it looks like.</h2><div class="shots"><figure class="shot"><div class="shot-frame filled" aria-label="Mockup of the AgentHQ Home dashboard screen"><div class="m-screen"><p class="m-mono">Good morning</p><p class="m-h">Your crew<span style="color:#a3e635">.</span></p>
+<div class="m-stats"><div><b>3</b><span>Agents</span></div><div><b>5</b><span>Tasks</span></div><div><b>1</b><span>Needs you</span></div></div>
+<div class="m-card"><span class="m-av" style="border-color:#a3e63555;background:#a3e6351a;color:#a3e635">M</span><div class="m-b"><div class="m-row"><b>Maya</b><span class="m-badge" style="color:#a3e635;border-color:#a3e63555">Working</span></div><span class="m-dim">Summarizing market signals</span></div></div><div class="m-card"><span class="m-av" style="border-color:#22d3ee55;background:#22d3ee1a;color:#22d3ee">F</span><div class="m-b"><div class="m-row"><b>Finn</b><span class="m-badge" style="color:#22d3ee;border-color:#22d3ee55">Review</span></div><span class="m-dim">Finished: fix login bug</span></div></div><div class="m-card"><span class="m-av" style="border-color:#e879f955;background:#e879f91a;color:#e879f9">I</span><div class="m-b"><div class="m-row"><b>Iris</b><span class="m-badge" style="color:#fbbf24;border-color:#fbbf2455">Away</span></div><span class="m-dim">Waiting for your OK</span></div></div>
+<p class="m-sub">Today's activity</p><div class="m-feed"><i style="background:#a3e635"></i>Maya got your command<span>2m</span></div><div class="m-feed"><i style="background:#22d3ee"></i>Finn finished a task<span>14m</span></div><div class="m-tab"><span class="on">Home</span><span>Inbox</span><span>Tasks</span><span>You</span></div></div></div><figcaption>Home dashboard</figcaption></figure><figure class="shot"><div class="shot-frame filled" aria-label="Mockup of the AgentHQ Agent at work screen"><div class="m-screen"><div class="m-chathead"><span class="m-av" style="border-color:#a3e63555;background:#a3e6351a;color:#a3e635">M</span><div><b>Maya</b><span class="m-mono" style="color:#a3e635">Telegram · live sync</span></div></div>
+<div class="m-msgs"><div class="m-bub me">Pull this week's market signals and give me the top 3.</div>
+<div class="m-bub">Got it. Starting now.</div>
+<div class="m-step"><i style="background:#a3e635"></i>Reading 14 sources</div>
+<div class="m-step"><i style="background:#a3e635"></i>Drafting summary</div>
+<div class="m-bub">Done. Top 3: AI agent tools are up, pricing is shifting, and two new rivals launched. Full notes are in your task.</div>
+<div class="m-bub me">Nice. Send it to Iris for the post.</div>
+<div class="m-bub typing"><span></span><span></span><span></span></div></div>
+<div class="m-input">Message Maya…</div></div></div><figcaption>Agent at work</figcaption></figure><figure class="shot"><div class="shot-frame filled" aria-label="Mockup of the AgentHQ Task board screen"><div class="m-screen"><p class="m-h">Tasks</p><div class="m-stats"><div><b>6</b><span>Total</span></div><div><b>2</b><span>Done</span></div><div><b>4</b><span>Open</span></div></div>
+<div class="m-chips"><span class="on">All</span><span>In flight</span><span>Done</span></div>
+<p class="m-mono">In flight · 4</p><div class="m-task"><span class="m-check"></span><div class="m-b"><span class="m-tt">Market signals summary</span><span class="m-mono" style="color:#a3e635">Maya</span></div><span class="m-badge" style="color:#a3e635;border-color:#a3e63555">Running</span></div><div class="m-task"><span class="m-check"></span><div class="m-b"><span class="m-tt">Fix login bug</span><span class="m-mono" style="color:#22d3ee">Finn</span></div><span class="m-badge" style="color:#22d3ee;border-color:#22d3ee55">Review</span></div><div class="m-task"><span class="m-check"></span><div class="m-b"><span class="m-tt">Draft launch post</span><span class="m-mono" style="color:#e879f9">Iris</span></div></div><div class="m-task"><span class="m-check"></span><div class="m-b"><span class="m-tt">Clean up old issues</span><span class="m-mono" style="color:#22d3ee">Finn</span></div></div>
+<p class="m-mono">Done · 2</p><div class="m-task done"><span class="m-check" style="background:#a3e635;border-color:#a3e635"></span><div class="m-b"><span class="m-tt">Weekly recap</span><span class="m-mono" style="color:#a3e635">Maya</span></div></div><div class="m-task done"><span class="m-check" style="background:#a3e635;border-color:#a3e635"></span><div class="m-b"><span class="m-tt">Update README</span><span class="m-mono" style="color:#22d3ee">Finn</span></div></div><div class="m-tab"><span>Home</span><span>Inbox</span><span class="on">Tasks</span><span>You</span></div></div></div><figcaption>Task board</figcaption></figure><figure class="shot"><div class="shot-frame filled" aria-label="Mockup of the AgentHQ Activity log screen"><div class="m-screen"><p class="m-h" style="font-size:17px">Notifications</p><p class="m-mono">Activity feed · push alerts when enabled</p>
+<div class="m-act"><span class="m-ic" style="color:#a3e635;border-color:#a3e63555;background:#a3e63514">✓</span><div class="m-b"><span class="m-tt">Maya finished a task</span><span class="m-dim">Market signals summary</span></div><span class="m-mono">2m</span></div><div class="m-act"><span class="m-ic" style="color:#a3e635;border-color:#a3e63555;background:#a3e63514">…</span><div class="m-b"><span class="m-tt">Maya replied</span><span class="m-dim">"Done. Top 3…"</span></div><span class="m-mono">3m</span></div><div class="m-act"><span class="m-ic" style="color:#e879f9;border-color:#e879f955;background:#e879f914">+</span><div class="m-b"><span class="m-tt">Task assigned to Iris</span><span class="m-dim">Draft launch post</span></div><span class="m-mono">9m</span></div><div class="m-act"><span class="m-ic" style="color:#22d3ee;border-color:#22d3ee55;background:#22d3ee14">✓</span><div class="m-b"><span class="m-tt">Finn finished a task</span><span class="m-dim">Fix login bug</span></div><span class="m-mono">14m</span></div><div class="m-act"><span class="m-ic" style="color:#22d3ee;border-color:#22d3ee55;background:#22d3ee14">↗</span><div class="m-b"><span class="m-tt">Finn handed off to Maya</span><span class="m-dim">Release notes</span></div><span class="m-mono">1h</span></div><div class="m-act"><span class="m-ic" style="color:#a3e635;border-color:#a3e63555;background:#a3e63514">✓</span><div class="m-b"><span class="m-tt">Maya got your command</span><span class="m-dim">Weekly recap</span></div><span class="m-mono">3h</span></div><div class="m-tab"><span>Home</span><span class="on">Inbox</span><span>Tasks</span><span>You</span></div></div></div><figcaption>Activity log</figcaption></figure></div><p class="mono muted shots-note">Mockups based on the app&#x27;s real screens · real screenshots coming soon</p></section><section class="section"><p class="eyebrow">You stay in control</p><h2>The rules every agent follows.</h2><div class="rule-list"><div class="rule"><span class="rule-n mono">01</span><div><b>An allow-list for every agent</b><p class="dim">Each agent only does what you said it can do.</p></div></div><div class="rule"><span class="rule-n mono">02</span><div><b>Stop, don&#x27;t sneak around</b><p class="dim">If an agent hits a wall, it stops and tells you. It doesn&#x27;t find a workaround.</p></div></div><div class="rule"><span class="rule-n mono">03</span><div><b>Everything is logged</b><p class="dim">Every command and every step leaves a record you can read.</p></div></div><div class="rule"><span class="rule-n mono">04</span><div><b>You hear about it fast</b><p class="dim">A person hears about problems fast, and Pause and Stop are always within reach.</p></div></div></div></section><section class="section"><p class="eyebrow">Questions</p><div class="faq"><details><summary>Does AgentHQ use AI to answer for my agent?</summary><p class="dim">No. Your agent does all the thinking on its own platform. AgentHQ only shows you what it&#x27;s doing and passes along your commands.</p></details><details><summary>Which agents can I connect?</summary><p class="dim">Telegram and Discord agents to start, with more platforms later.</p></details><details><summary>When can I try it?</summary><p class="dim">Soon. AgentHQ is still being built by a small team, iPhone first. We&#x27;ll share more here as it gets closer.</p></details></div></section><footer class="footer"><div class="brand"><div class="logo-slot small" aria-hidden="true"><span>HQ</span></div><b>AgentHQ</b></div><p class="dim">A window and a remote control for your AI agents. Built by a small team.</p><div class="footer-links"><span class="muted">© 2026 AgentHQ</span></div></footer></div></main>
+</body>
+</html>
