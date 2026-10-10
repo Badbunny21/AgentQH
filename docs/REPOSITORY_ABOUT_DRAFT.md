@@ -14,6 +14,6 @@ agenthq, ai-agents, expo, react-native, supabase, typescript
 
 These are proposed settings for Julieth to review. The public repository About card has not been changed. The description states the product goal without claiming the live Hermes connection is finished.
 
-## Logo follow-up
+## Logo review copy
 
-The public landing page displays a LOGO placeholder. The current main branch's Next.js website has an AgentHQ wordmark instead and different landing-page content. Confirm the deployed project's source before changing the logo. Do not deploy the older repository website over the live landing page.
+The public landing page belongs to Vercel project `agenthq`, a standalone CLI deployment without a Git connection. The repository's separate `agent-qh` project runs a different Next.js site. `landing/index.html` preserves the actual public page and replaces both LOGO placeholders with a neon HQ mark for review. Nothing is deployed and no domain or project setting is changed. See `landing/README.md` before choosing a deployment route.
