@@ -6,7 +6,6 @@ import { RootStackParamList } from '../navigation/RootNavigator';
 import { C, FONTS } from '../constants/theme';
 import Icon from '../components/Icon';
 import PlatformLogo from '../components/PlatformLogo';
-import CreateAgentPanel from '../components/CreateAgentPanel';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'AddAgent'>;
@@ -29,15 +28,9 @@ export default function AddAgentScreen({ navigation }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
-        <CreateAgentPanel
-          onAgentCreated={(agentId) => {
-            navigation.replace('Chat', { agentId });
-          }}
-        />
-
-        <View style={{ marginTop: 28 }}>
+        <View>
           <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: C.textDim, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>
-            Import existing bot
+            Connect an existing agent
           </Text>
           <View style={{ gap: 10 }}>
             <TouchableOpacity
