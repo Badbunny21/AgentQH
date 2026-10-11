@@ -91,7 +91,7 @@ The [project landing page](https://agent-qh.vercel.app) introduces the concept. 
 
 ## Quick start
 
-Use **Node.js 22 LTS (22.13 or newer in the 22.x line)** and npm. The command/report tests use Node's TypeScript stripping flag. For a phone preview, install [Expo Go](https://expo.dev/go); an Android emulator also works. The iOS Simulator requires macOS and Xcode, not Windows.
+Use **Node.js 22 LTS (22.13 or newer in the 22.x line)** and npm. The command/report tests use Node's TypeScript stripping flag. The app now targets Expo SDK 57. For a phone preview, install [Expo Go](https://expo.dev/go); an Android emulator also works. The iOS Simulator requires macOS and Xcode, not Windows.
 
 Run these commands in Terminal, PowerShell, or Command Prompt:
 

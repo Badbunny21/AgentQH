@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { supabase } from './supabase';
 
 Notifications.setNotificationHandler({
@@ -15,7 +15,9 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
-  if (!Device.isDevice) return null;
+  // Remote push tokens require a development/standalone build, not Expo Go.
+  if (Platform.OS === 'web' || !Device.isDevice ||
+      Constants.executionEnvironment === ExecutionEnvironment.StoreClient) return null;
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {

@@ -216,10 +216,10 @@ export default function EditAgentScreen({ navigation, route }: Props) {
       </ScrollView>
 
       {loading && (
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator color={C.a} size="large" />
         </View>
       )}
     </View>
   );
-}
+    }
