@@ -22,6 +22,16 @@ The goal is a second front door into an agent you already own and run elsewhere.
 
 Our design rule: AgentHQ should never think for the agent. The agent's intelligence stays wherever it already runs. AgentHQ is a window and a remote control, not a replacement brain. The command/report path follows that rule; the legacy chat cleanup is still under review.
 
+## Design previews
+
+Design previews from the project website, not live app screenshots. Real captures will follow a verified phone demo.
+
+| Home dashboard | Agent at work | Task board | Activity log |
+| :---: | :---: | :---: | :---: |
+| <img src="agenthq-design-home-dashboard.png" alt="Design preview of the Home dashboard" width="220"> | <img src="agenthq-design-agent-at-work.png" alt="Design preview of an agent at work" width="220"> | <img src="agenthq-design-task-board.png" alt="Design preview of the Task board" width="220"> | <img src="agenthq-design-activity-log.png" alt="Design preview of the Activity log" width="220"> |
+
+These mockups show the intended interface, not verified live agent activity. The agent-at-work view illustrates messages and progress from an external agent; it does not mean AgentHQ supplies the agent's intelligence.
+
 ## Current status
 
 AgentHQ is an in-progress prototype, with app code and a command/report foundation in `main`. It is not a finished live agent-control demo yet.
