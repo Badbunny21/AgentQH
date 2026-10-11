@@ -1,69 +1,125 @@
 # AgentHQ
 
-**A phone-first control center for people who already have an AI agent.**
-Connect it, give it a job, and see whether it finished or needs your help.
+**Give your existing AI agent a job from your phone. See its progress, result or failure in one place.**
 
-[Project landing page](https://agent-qh.vercel.app) | Built for [LA Hacks 2026](https://la-ai-hackathon-2026.devpost.com) at UCLA
+For people who already run an agent in Telegram, Discord or another runtime and want a clearer view than a busy chat thread. AgentHQ is a remote control and activity window, not a new AI brain.
 
-## The problem
+**Status: prototype.** The command/report handlers pass local emulator tests. A deployed external-agent connection and a real phone demo are still unverified. The website images below are design previews, not live results.
 
-If you run an AI agent through Telegram, Discord, or anywhere else, chat apps only show you the final result. You never see what the agent is doing while it works, what is still on its plate, or that it quietly broke ten minutes ago. Its messages also get buried under everyone else's texts.
+[Project landing page](https://agent-qh.vercel.app) | [LA Hacks AI Hackathon 2026](https://la-ai-hackathon-2026.devpost.com) | [Try the local checks](#try-the-local-checks-no-account-needed)
 
-## What we are building toward
+## The problem and the intended demo
 
-The goal is a second front door into an agent you already own and run elsewhere. AgentHQ is being built to show the agent's status, progress and errors in real time, and let you send commands without digging through a chat thread.
+An agent's final chat message is not enough to tell you whether it is working, stuck or quietly offline. AgentHQ separates agent work from chat, with a command history and visible progress.
 
-- **See live work:** status, progress, and failures from your agent in one place.
-- **Send commands:** hand your agent a job and watch it get acknowledged and completed.
-- **Stay in control:** tasks, memory, handoffs, and workspaces organized per agent.
-- **Get alerted:** push notifications when something needs you.
+The demo target is one complete loop:
 
-### Core principle
+1. Open one connected agent on a phone and give it a job.
+2. Watch the external agent claim and acknowledge the command.
+3. See progress reports arrive while it works.
+4. See a result or a clear failure, with the report history preserved.
 
-Our design rule: AgentHQ should never think for the agent. The agent's intelligence stays wherever it already runs. AgentHQ is a window and a remote control, not a replacement brain. The command/report path follows that rule; the legacy client-side chat path has been removed.
+**What works locally today:** automated tests exercise the real command/report handlers against an in-memory backend emulator. They cover the success loop, duplicate protection, invalid keys, cross-user rejection, progress, failure, cancellation status and heartbeat staleness. They do not run a real AI agent.
+
+**What remains for the live demo:** deploy and verify the Supabase schema/access policies/functions, finish the external-runtime connector and its key setup, then test the loop on an actual phone. Stop currently marks a command cancelled in AgentHQ; it does not prove the external process stops.
+
+## Try the local checks (no account needed)
+
+Use Git and **Node.js 22.13 or newer in the 22.x line**, with npm. Run from a terminal:
+
+```text
+git clone https://github.com/Badbunny21/AgentQH.git
+cd AgentQH
+node --version
+npm ci
+npm test
+npx tsc --noEmit
+```
+
+Expected: all **7 tests pass** and TypeScript exits without errors. No Supabase project, bot token or paid API is needed. The tests verify handlers in an emulator, not deployed database security or a working phone connection. Node may print a module-type warning; it does not fail these tests.
+
+To check browser startup:
+
+```text
+npm run web
+```
+
+Without real Supabase values, the expected page is **"Supabase not configured"**. That confirms the app loaded, not that the dashboard or backend is usable. Stop the server with Ctrl+C before starting another preview.
+
+## Phone preview with Expo Go
+
+Expo Go is a development preview app. Your computer serves AgentHQ; your phone opens it inside Expo Go. This is not a standalone App Store release. Keep the computer and development server running.
+
+### Check compatibility first
+
+This repository uses **Expo SDK 54**. The installed Expo Go version must support SDK 54. Use [Expo's device/version selector](https://expo.dev/go) rather than assuming the latest store app is compatible.
+
+For an iPhone, the current [SDK-54 installation page](https://expo.dev/go?device=true&platform=ios&sdkVersion=54) points to a custom Expo Go build distributed through TestFlight, requiring Apple Developer Program membership. A reviewed SDK upgrade or development build may be needed. Do not upgrade the project blindly to solve a version warning. Native phone launch has not yet been verified for this repo.
+
+### Configure the backend
+
+After the clone/install above, copy `.env.example` to a new file named `.env` in the repository root. Edit it with the team's actual Supabase project values:
+
+| Variable | Value needed |
+| --- | --- |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
+
+Placeholders or missing values intentionally stop the app at the configuration screen. Real values alone are not a backend deployment: the project's Auth, schema, access policies and Edge Functions must also be set up and tested.
+
+Never put a service-role key, bot token or model-provider secret in an `EXPO_PUBLIC_` variable. These values are bundled into the app. Never commit `.env` or real secrets.
+
+### Open the preview
+
+1. Install a compatible Expo Go build using [Expo's instructions](https://expo.dev/go).
+2. Put the phone and computer on the same Wi-Fi network.
+3. Start the server from the repository root:
+
+```text
+npm start
+```
+
+4. Scan the terminal QR code with the iPhone Camera or the Android Expo Go scanner. Follow the prompt to open Expo Go.
+5. On physical iPhones, [Expo's current instructions](https://docs.expo.dev/get-started/start-developing/) require the computer's Expo CLI and Expo Go to be signed in to the same Expo account. Sign in locally on each device; do not share passwords.
+6. After changing `.env`, stop and restart the server.
+
+Campus/public Wi-Fi can block the phone from reaching the computer. Stop the LAN server and try:
+
+```text
+npm run start:tunnel
+```
+
+Expo may ask to install its tunnel helper. Accept the prompt, wait for "Tunnel ready", then scan the new QR. Both devices need internet; reloads are slower than LAN. A tunnel solves networking, not SDK incompatibility or missing backend setup. Android remote push notifications require a development build and are not supported in Expo Go for SDK 54.
+
+### Teammate workflow
+
+- **To view the same preview:** install compatible Expo Go and open the host's QR, subject to network and Expo account requirements. A viewer does not need the source code on their phone.
+- **To develop independently:** each teammate clones the repo on their own computer, installs dependencies, creates their own local `.env` and starts their own server. They scan their own QR and use their own Git branches/PRs for changes.
+- Share the agreed Supabase project URL/public key and grant only needed project access. Each teammate uses their own app account. A shared backend does not automatically share all agents or workspaces; access policies determine visibility.
+
+**Do not import a Telegram bot already used by Hermes through the current import wizard.** It changes the bot webhook and can interrupt the existing runtime. The non-invasive runtime connector is separate unfinished work.
+
+Migrations are in `supabase/migrations/`. Review the SQL and verify the exact project and migration history before applying changes. Do not deploy a database just to see the preview. Billing setup is in [docs/STRIPE_SETUP.md](docs/STRIPE_SETUP.md).
 
 ## Design previews
 
-Design previews from the project website, not live app screenshots. Real captures will follow a verified phone demo.
+These are intended interface designs from the project website, **not screenshots of a verified live app**.
 
 | Home dashboard | Agent at work | Task board | Activity log |
 | :---: | :---: | :---: | :---: |
 | <img src="agenthq-design-home-dashboard.png" alt="Design preview of the Home dashboard" width="220"> | <img src="agenthq-design-agent-at-work.png" alt="Design preview of an agent at work" width="220"> | <img src="agenthq-design-task-board.png" alt="Design preview of the Task board" width="220"> | <img src="agenthq-design-activity-log.png" alt="Design preview of the Activity log" width="220"> |
 
-These mockups show the intended interface, not verified live agent activity. The agent-at-work view illustrates messages and progress from an external agent; it does not mean AgentHQ supplies the agent's intelligence.
+A live phone recording and real app captures still need to be added after the command-to-result loop is verified. The landing page introduces the concept; it is not proof of a working connection.
 
-## Current status
+## Engineering map
 
-AgentHQ is an in-progress prototype, with app code and a command/report foundation in `main`. It is not a finished live agent-control demo yet.
+- **App:** Expo SDK 54 / React Native / TypeScript. Screens and data access for agents, tasks, memory, handoffs and workspaces.
+- **Backend:** Supabase Postgres, Auth and Edge Functions. Agent-key issuance, command creation/polling and acknowledgment/progress/result/error reports.
+- **Tests:** protocol tests and real Edge Function handlers exercised against an in-memory backend emulator.
+- **Other code:** Telegram/Discord imports, Stripe and notification code exist, but this is not a claim that every integration is deployed or verified.
+- **Website:** Next.js source in `website/`; the public landing is a separate standalone deployment.
 
-### Implemented in the repo
-
-- Expo app screens and data access for agents, tasks, memory, handoffs and workspaces.
-- A "Give it a job" panel with command status, progress, report history, results and a stale-agent warning.
-- Backend code for issuing an agent key, creating commands, letting an external agent claim them, and recording acknowledgments, progress, results or errors.
-- Automated tests for the command/report flow using the real handlers against an in-memory backend emulator.
-
-### Still in progress
-
-- The command/report foundation is emulator-tested only. It has not been deployed or verified with a real external agent or on a phone.
-- A runnable external-agent connector and its setup/key flow still need to be completed and tested.
-- Supabase migrations, access policies and functions need to be checked against the live project before deployment. Do not apply them blindly.
-- Stop marks a command cancelled in AgentHQ. It does not yet prove the external agent stops executing.
-- Retry/recovery and production hardening remain follow-up work.
-- Legacy in-app chat, template-agent creation and the client-side OpenAI fallback were removed in [PR #2](https://github.com/Badbunny21/AgentQH/pull/2). Some backend functions still contain hosted AI code; that cleanup is separate from the external-agent connector.
-
-### The hackathon slice
-
-Connect one existing agent, send one real command from a phone, and show it acknowledge, report progress, then finish or fail with a visible report history. The work is the real connection and reliable demo, not building a new AI brain. Teammate ideas that make that slice clearer and stronger are welcome.
-
-The [project landing page](https://agent-qh.vercel.app) introduces the concept. It is not proof of a working external-agent connection. Real app screenshots will be added after the phone demo is verified.
-
-## Tech stack
-
-- **App:** Expo / React Native with TypeScript (one codebase for iOS and Android)
-- **Backend:** Supabase (Postgres, Auth, Edge Functions)
-- **Integrations:** Telegram, Discord, Stripe, push notifications
-- **Website source:** Next.js in `website/`; the public Vercel landing is a separate standalone deployment.
+Legacy in-app chat, template-agent creation and the client-side OpenAI fallback were removed in [PR #2](https://github.com/Badbunny21/AgentQH/pull/2). Some backend functions still contain hosted AI code. That cleanup, retry/recovery, dependency security review and production hardening remain follow-up work. Passing builds/tests does not establish production readiness.
 
 ## Project structure
 
@@ -89,59 +145,7 @@ The [project landing page](https://agent-qh.vercel.app) introduces the concept. 
 └── docs/                Setup guides
 ```
 
-## Quick start
-
-Use **Node.js 22 LTS (22.13 or newer in the 22.x line)** and npm. The command/report tests use Node's TypeScript stripping flag. For a phone preview, install [Expo Go](https://expo.dev/go); an Android emulator also works. The iOS Simulator requires macOS and Xcode, not Windows.
-
-Run these commands in Terminal, PowerShell, or Command Prompt:
-
-```text
-git clone https://github.com/Badbunny21/AgentQH.git
-cd AgentQH
-node --version
-npm ci
-```
-
-Copy the example environment file using the command for your shell:
-
-| Shell | Command |
-| --- | --- |
-| macOS / Linux | `cp .env.example .env` |
-| Windows PowerShell | `Copy-Item .env.example .env` |
-| Windows Command Prompt | `copy .env.example .env` |
-
-Edit `.env` with your own Supabase project values:
-
-| Variable | Purpose |
-| --- | --- |
-| `EXPO_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon (public) key |
-
-Never put a service-role key, Telegram bot token, or model-provider secret in an `EXPO_PUBLIC_` variable. These values are bundled into the app. Never commit `.env` or real secrets.
-
-```text
-npm start
-```
-
-`npm start` uses Expo's LAN discovery on macOS, Linux, and Windows, without macOS-only `ipconfig` commands. Put the phone and computer on the same network and scan the QR code with Expo Go. If LAN access is blocked by your firewall or network, use `npm run start:tunnel` (Expo may prompt to install its tunnel helper). If automatic host discovery chooses the wrong interface, set `REACT_NATIVE_PACKAGER_HOSTNAME` to your computer's LAN IPv4 address in your shell, then restart Expo.
-
-| Command | Purpose |
-| --- | --- |
-| `npm run start:tunnel` | Tunnel for phones on another network |
-| `npm run web` | Browser preview |
-| `npm run android` | Start with an installed Android emulator |
-| `npm run ios` | Start the iOS Simulator on macOS |
-| `npm test` | Local command/report emulator and protocol tests |
-
-### What this preview does and does not prove
-
-The Supabase project must already have the required schema and Edge Functions configured. A running Expo preview is not a backend deployment. The local command/report tests emulate the loop; passing them does not prove a live Hermes connection, production RLS, crash recovery, or active process cancellation.
-
-**Do not import a Telegram bot already used by Hermes through the current import wizard.** That wizard changes the bot webhook and can interrupt the existing runtime. A non-invasive runtime connection is still separate work.
-
-Database migrations are in `supabase/migrations/`. Before applying them, review the SQL and verify the exact target project and migration history with the [Supabase CLI](https://supabase.com/docs/guides/cli). Do not run `supabase db push` against an existing project just to launch this preview. Billing setup is in [docs/STRIPE_SETUP.md](docs/STRIPE_SETUP.md).
-
-### Website source
+## Website source (separate from the app)
 
 From the repository root:
 
@@ -151,15 +155,31 @@ npm ci
 npm run dev
 ```
 
-For a production build, run `npm run build` in `website`. The website source in this repository currently differs from the public Vercel landing page. Confirm Vercel's deployment source before deploying it; do not overwrite the public page with this older copy.
+Open `http://localhost:3001`. Stop the server before running the production check in the same directory:
 
-## Built for LA Hacks
+```text
+npm run build
+```
 
-AgentHQ is our entry for LA Hacks 2026 (October 17-18, UCLA). The demo goal: connect an existing agent, send it one command, watch it acknowledge and report progress, then finish or fail visibly with an audit trail.
+This source differs from the public Vercel landing and includes older product copy. Verify the deployment source before publishing; do not overwrite the public page with this copy.
+
+## Hackathon submission checklist
+
+Target event: LA Hacks AI Hackathon 2026, October 17-18 at UCLA. This repo includes **pre-event work**, not code claimed to have been built entirely during the event.
+
+The [official submission page](https://la-ai-hackathon-2026.devpost.com) asks for a documented public repo, project/track/company-challenge description, a 2-3 minute demo video and a complete Devpost page. Its criteria are technical depth, product thinking/impact, execution/polish and originality/insight.
+
+Before submitting:
+
+- Confirm with organizers how pre-existing code may be used. The published page says the project must be completed within the hackathon timeframe; this README does not establish eligibility.
+- Record what was already here and what the team builds during the event.
+- Pick and explain the applicable track/company challenge; do not invent one before confirming it.
+- Verify one real phone-to-agent loop, including a visible failure case, then add the demo video and actual screenshots.
+- Show the command/report design and its limits. Check live access policies, dependency advisories and secret handling before a public live demo.
 
 ## Team
 
-Team: Julieth Avina - founder. Product, app, and agent integration.
+Julieth Avina - founder. Product, app and agent integration.
 
 ## License
 
