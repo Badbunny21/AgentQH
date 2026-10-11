@@ -50,12 +50,15 @@ interface SecondaryButtonProps {
   children: React.ReactNode;
   onPress?: () => void;
   style?: ViewStyle;
+  disabled?: boolean;
 }
 
-export function SecondaryButton({ children, onPress, style }: SecondaryButtonProps) {
+export function SecondaryButton({ children, onPress, style, disabled }: SecondaryButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
+      disabled={disabled}
+      accessibilityState={{ disabled: !!disabled }}
       style={[
         {
           height: 52,
@@ -66,6 +69,7 @@ export function SecondaryButton({ children, onPress, style }: SecondaryButtonPro
           alignItems: 'center',
           justifyContent: 'center',
           paddingHorizontal: 24,
+          opacity: disabled ? 0.6 : 1,
         },
         style,
       ]}
