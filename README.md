@@ -20,7 +20,7 @@ The goal is a second front door into an agent you already own and run elsewhere.
 
 ### Core principle
 
-Our design rule: AgentHQ should never think for the agent. The agent's intelligence stays wherever it already runs. AgentHQ is a window and a remote control, not a replacement brain. The command/report path follows that rule; the legacy chat cleanup is still under review.
+Our design rule: AgentHQ should never think for the agent. The agent's intelligence stays wherever it already runs. AgentHQ is a window and a remote control, not a replacement brain. The command/report path follows that rule; the legacy client-side chat path has been removed.
 
 ## Design previews
 
@@ -50,7 +50,7 @@ AgentHQ is an in-progress prototype, with app code and a command/report foundati
 - Supabase migrations, access policies and functions need to be checked against the live project before deployment. Do not apply them blindly.
 - Stop marks a command cancelled in AgentHQ. It does not yet prove the external agent stops executing.
 - Retry/recovery and production hardening remain follow-up work.
-- Legacy in-app chat and OpenAI code are still in `main`. [PR #2](https://github.com/Badbunny21/AgentQH/pull/2) proposes removing the client-side path; it is not merged.
+- Legacy in-app chat, template-agent creation and the client-side OpenAI fallback were removed in [PR #2](https://github.com/Badbunny21/AgentQH/pull/2). Some backend functions still contain hosted AI code; that cleanup is separate from the external-agent connector.
 
 ### The hackathon slice
 
@@ -84,50 +84,74 @@ The [project landing page](https://agent-qh.vercel.app) introduces the concept. 
 │   │                    agent-commands-poll, agent-report and shared protocol
 │   └── migrations/      Database schema migrations
 ├── tests/               Command protocol + emulator command/report tests
+├── landing/             Captured public landing HTML, awaiting the reviewed logo
 ├── website/             Marketing site (Next.js)
 └── docs/                Setup guides
 ```
 
 ## Quick start
 
-These are the current `main` instructions. [PR #4](https://github.com/Badbunny21/AgentQH/pull/4) proposes the portable Node 22 setup and Windows instructions; it is still awaiting review. Current start/Android/iOS scripts use macOS shell commands, so use that PR as the setup review point before onboarding a Windows teammate. The command/report tests need Node 22.13+; Node 18 is not enough for that test command.
+Use **Node.js 22 LTS (22.13 or newer in the 22.x line)** and npm. The command/report tests use Node's TypeScript stripping flag. For a phone preview, install [Expo Go](https://expo.dev/go); an Android emulator also works. The iOS Simulator requires macOS and Xcode, not Windows.
 
+Run these commands in Terminal, PowerShell, or Command Prompt:
 
-**Prerequisites:** Node.js 18+, npm, and the [Expo Go](https://expo.dev/go) app or an iOS/Android simulator.
-
-```bash
+```text
 git clone https://github.com/Badbunny21/AgentQH.git
 cd AgentQH
-npm install
-cp .env.example .env
+node --version
+npm ci
 ```
 
-Edit `.env` and fill in your own Supabase project values:
+Copy the example environment file using the command for your shell:
+
+| Shell | Command |
+| --- | --- |
+| macOS / Linux | `cp .env.example .env` |
+| Windows PowerShell | `Copy-Item .env.example .env` |
+| Windows Command Prompt | `copy .env.example .env` |
+
+Edit `.env` with your own Supabase project values:
 
 | Variable | Purpose |
 | --- | --- |
 | `EXPO_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon (public) key |
 
-Never commit `.env` or any real keys. `.env` is already in `.gitignore`.
+Never put a service-role key, Telegram bot token, or model-provider secret in an `EXPO_PUBLIC_` variable. These values are bundled into the app. Never commit `.env` or real secrets.
 
-Then start the app:
-
-```bash
-npm start          # Expo dev server on your local network
-npm run start:tunnel   # Use this if your phone is on a different network
-npm run web        # Run in the browser
+```text
+npm start
 ```
 
-Database migrations live in `supabase/migrations/`. Review them against your project before applying them with the [Supabase CLI](https://supabase.com/docs/guides/cli). Do not push migrations blindly to an existing project. Billing setup is covered in [docs/STRIPE_SETUP.md](docs/STRIPE_SETUP.md).
+`npm start` uses Expo's LAN discovery on macOS, Linux, and Windows, without macOS-only `ipconfig` commands. Put the phone and computer on the same network and scan the QR code with Expo Go. If LAN access is blocked by your firewall or network, use `npm run start:tunnel` (Expo may prompt to install its tunnel helper). If automatic host discovery chooses the wrong interface, set `REACT_NATIVE_PACKAGER_HOSTNAME` to your computer's LAN IPv4 address in your shell, then restart Expo.
 
-### Website
+| Command | Purpose |
+| --- | --- |
+| `npm run start:tunnel` | Tunnel for phones on another network |
+| `npm run web` | Browser preview |
+| `npm run android` | Start with an installed Android emulator |
+| `npm run ios` | Start the iOS Simulator on macOS |
+| `npm test` | Local command/report emulator and protocol tests |
 
-```bash
+### What this preview does and does not prove
+
+The Supabase project must already have the required schema and Edge Functions configured. A running Expo preview is not a backend deployment. The local command/report tests emulate the loop; passing them does not prove a live Hermes connection, production RLS, crash recovery, or active process cancellation.
+
+**Do not import a Telegram bot already used by Hermes through the current import wizard.** That wizard changes the bot webhook and can interrupt the existing runtime. A non-invasive runtime connection is still separate work.
+
+Database migrations are in `supabase/migrations/`. Before applying them, review the SQL and verify the exact target project and migration history with the [Supabase CLI](https://supabase.com/docs/guides/cli). Do not run `supabase db push` against an existing project just to launch this preview. Billing setup is in [docs/STRIPE_SETUP.md](docs/STRIPE_SETUP.md).
+
+### Website source
+
+From the repository root:
+
+```text
 cd website
-npm install
+npm ci
 npm run dev
 ```
+
+For a production build, run `npm run build` in `website`. The website source in this repository currently differs from the public Vercel landing page. Confirm Vercel's deployment source before deploying it; do not overwrite the public page with this older copy.
 
 ## Built for LA Hacks
 
