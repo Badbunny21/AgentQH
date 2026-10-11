@@ -11,7 +11,7 @@ If you run an AI agent through Telegram, Discord, or anywhere else, chat apps on
 
 ## What we are building toward
 
-The goal is a second front door into an agent you already own and run elsewhere. AgentHQ is being built to give the agent a place to report status, progress, and errors in real time, and give you a place to send it commands, without digging through a chat thread.
+The goal is a second front door into an agent you already own and run elsewhere. AgentHQ is being built to show the agent's status, progress and errors in real time, and let you send commands without digging through a chat thread.
 
 - **See live work:** status, progress, and failures from your agent in one place.
 - **Send commands:** hand your agent a job and watch it get acknowledged and completed.
