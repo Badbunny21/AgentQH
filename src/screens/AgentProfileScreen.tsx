@@ -18,7 +18,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { fetchMemoriesForAgent, createMemory, Memory } from '../lib/memoriesApi';
 import AddMemorySheet from '../components/AddMemorySheet';
 import { fetchAgentStats, AgentStats } from '../lib/agentStatsApi';
-import { PLATFORMS } from '../constants/data';
+import { PLATFORMS } from '../constants/platforms';
+import useAgentConnection from '../hooks/useAgentConnection';
+import { connectionLabel } from '../lib/agentConnection';
 import AgentAvatar from '../components/AgentAvatar';
 import PlatformLogo from '../components/PlatformLogo';
 import Icon from '../components/Icon';
@@ -122,6 +124,7 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
   const { session } = useAuth();
   const { tasks, toggleTask, refresh } = useTasks();
   const agent = getAgent(agentId);
+  const connection = useAgentConnection(agentId);
   const [memories, setMemories] = useState<Memory[]>([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [showAddMemory, setShowAddMemory] = useState(false);
@@ -133,7 +136,8 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
 
   const loadStats = useCallback(() => {
     if (!session?.user.id || !agentId) return;
-    fetchAgentStats(session.user.id, agentId).then(setStats);
+    setStats(null);
+    fetchAgentStats(session.user.id, agentId).then(setStats).catch(() => setStats(null));
   }, [session?.user.id, agentId]);
 
   useFocusEffect(
@@ -168,7 +172,7 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
   }
 
   const [gradFrom, gradTo] = GRAD_KEYS[agent.gradKey] || GRAD_KEYS.ab;
-  const platform = PLATFORMS.find(p => p.name.toLowerCase() === agent.origin.toLowerCase());
+  const platform = PLATFORMS.find(p => p.id === connection);
   const agentTint = gradFrom;
 
   const statusLabel = { online: 'Online', away: 'Away', busy: 'Busy', offline: 'Offline' }[agent.status];
@@ -239,17 +243,11 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
 
         {/* Stats — live from messages & tasks */}
         <View style={{ marginHorizontal: 20, marginTop: 20, padding: 16, paddingHorizontal: 18, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, flexDirection: 'row' }}>
-          <StatBlock value={stats?.convos ?? 0} label="Convos" />
+          <StatBlock value={stats?.messagesTotal ?? '-'} label="Messages" />
           <View style={{ width: 1, backgroundColor: C.border, marginHorizontal: 2 }} />
-          <StatBlock
-            value={stats?.accuracy != null ? `${stats.accuracy}%` : '—'}
-            label="Success"
-          />
+          <StatBlock value={stats?.tasksTotal ?? '-'} label="Tasks" />
           <View style={{ width: 1, backgroundColor: C.border, marginHorizontal: 2 }} />
-          <StatBlock
-            value={stats?.hoursThisWeek != null && stats.hoursThisWeek > 0 ? `${stats.hoursThisWeek}h` : '<1h'}
-            label="This week"
-          />
+          <StatBlock value={stats?.tasksCompleted ?? '-'} label="Done" />
         </View>
 
         <View style={{ paddingHorizontal: 20 }}>
@@ -332,28 +330,28 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
 
         {/* Origin */}
         <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
-          <Text style={{ fontFamily: FONTS.semibold, fontSize: 18, color: C.text, letterSpacing: -0.4, marginBottom: 10 }}>Origin</Text>
+          <Text style={{ fontFamily: FONTS.semibold, fontSize: 18, color: C.text, letterSpacing: -0.4, marginBottom: 10 }}>Connection</Text>
           <TouchableOpacity
             onPress={() => {
-              if (agent.origin === 'Telegram' || agent.origin === 'Discord') {
+              if (connection === 'telegram' || connection === 'discord') {
                 navigation.navigate('EditPlatformConnection', { agentId: agent.id });
               }
             }}
-            activeOpacity={agent.origin === 'Telegram' || agent.origin === 'Discord' ? 0.85 : 1}
+            activeOpacity={connection === 'telegram' || connection === 'discord' ? 0.85 : 1}
             style={{ backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}
           >
             <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: platform?.color || C.c3, alignItems: 'center', justifyContent: 'center' }}>
-              <PlatformLogo id={agent.origin.toLowerCase()} size={20} />
+              <PlatformLogo id={connection} size={20} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: C.text, letterSpacing: -0.2 }}>
-                {agent.origin === 'AgentHQ' ? 'Hosted on AgentHQ' : `From ${agent.origin}`}
+                {connectionLabel(connection)}
               </Text>
               <Text style={{ fontFamily: FONTS.mono, fontSize: 11, color: C.textDim, letterSpacing: 0.5, marginTop: 2, textTransform: 'uppercase' }}>
-                {agent.importedAt.toUpperCase()} · {agent.origin === 'AgentHQ' ? 'CREATED' : 'IMPORTED'}
+                {agent.importedAt.toUpperCase()} · ADDED
               </Text>
             </View>
-            {(agent.origin === 'Telegram' || agent.origin === 'Discord') && (
+            {(connection === 'telegram' || connection === 'discord') && (
               <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.a }}>Manage</Text>
             )}
           </TouchableOpacity>
