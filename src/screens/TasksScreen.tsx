@@ -9,7 +9,7 @@ import { useWorkspaces } from '../contexts/WorkspacesContext';
 import TaskRow from '../components/TaskRow';
 import AddTaskSheet from '../components/AddTaskSheet';
 import TaskDetailSheet from '../components/TaskDetailSheet';
-import { GhostChip, PrimaryButton } from '../components/Buttons';
+import { PrimaryButton } from '../components/Buttons';
 import Icon from '../components/Icon';
 
 type Props = {
@@ -18,8 +18,8 @@ type Props = {
 
 function StatBlock({ value, label }: { value: string | number; label: string }) {
   return (
-    <View style={{ flex: 1 }}>
-      <Text style={{ fontFamily: FONTS.semibold, fontSize: 30, color: C.text, letterSpacing: -1.2, lineHeight: 30 }}>
+    <View style={{ flex: 1, backgroundColor: C.c1, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 16, padding: 12 }}>
+      <Text style={{ fontFamily: FONTS.semibold, fontSize: 26, color: C.text, letterSpacing: -0.7, lineHeight: 29 }}>
         {value}
       </Text>
       <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textDim, letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 6 }}>
@@ -70,11 +70,9 @@ export default function TasksScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        <View style={{ paddingHorizontal: 20, paddingBottom: 22, flexDirection: 'row', gap: 18 }}>
+        <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', gap: 8 }}>
           <StatBlock value={visibleTasks.length} label="Total" />
-          <View style={{ width: 1, backgroundColor: C.border }} />
           <StatBlock value={doneTasks.length} label="Done" />
-          <View style={{ width: 1, backgroundColor: C.border }} />
           <StatBlock value={openTasks.length} label="Open" />
         </View>
 
@@ -94,26 +92,29 @@ export default function TasksScreen({ navigation }: Props) {
         )}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 18, gap: 8 }}>
-          <GhostChip active={filter === 'all'} onPress={() => setFilter('all')}>All</GhostChip>
-          <GhostChip active={filter === 'open'} onPress={() => setFilter('open')}>In flight</GhostChip>
-          <GhostChip active={filter === 'done'} onPress={() => setFilter('done')}>Done</GhostChip>
+          {(['all', 'open', 'done'] as const).map(value => (
+            <TouchableOpacity key={value} accessibilityRole="button" accessibilityState={{ selected: filter === value }} onPress={() => setFilter(value)}
+              style={{ borderRadius: 999, borderWidth: 1, borderColor: filter === value ? C.a : C.borderStrong, backgroundColor: filter === value ? C.a : 'transparent', paddingHorizontal: 16, paddingVertical: 8 }}>
+              <Text style={{ fontFamily: filter === value ? FONTS.semibold : FONTS.regular, fontSize: 13, color: filter === value ? C.c0 : C.textDim }}>{value === 'all' ? 'All' : value === 'open' ? 'Open' : 'Done'}</Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
 
         {showOpen && (
           <>
             <View style={{ paddingHorizontal: 20, paddingBottom: 10 }}>
               <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: C.textDim, letterSpacing: 1.5, textTransform: 'uppercase' }}>
-                In flight · {openTasks.length}
+                Open · {openTasks.length}
               </Text>
             </View>
             <View style={{ paddingHorizontal: 20, paddingBottom: 24, gap: 8 }}>
               {openTasks.map(task => (
-                <TaskRow key={task.id} task={task} onToggle={toggleTask} onPress={setSelectedTask} />
+                <TaskRow board key={task.id} task={task} onToggle={toggleTask} onPress={setSelectedTask} />
               ))}
               {openTasks.length === 0 && (
                 <View style={{ padding: 24, alignItems: 'center', gap: 12 }}>
                   <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, textAlign: 'center' }}>
-                    Nothing in flight. Assign a task to an agent to get started.
+                    No open tasks. Assign a task to an agent to get started.
                   </Text>
                   <PrimaryButton onPress={() => setShowAdd(true)} icon="plus">New task</PrimaryButton>
                 </View>
@@ -131,7 +132,7 @@ export default function TasksScreen({ navigation }: Props) {
             </View>
             <View style={{ paddingHorizontal: 20, paddingBottom: 40, gap: 8 }}>
               {doneTasks.map(task => (
-                <TaskRow key={task.id} task={task} onToggle={toggleTask} onPress={setSelectedTask} />
+                <TaskRow board key={task.id} task={task} onToggle={toggleTask} onPress={setSelectedTask} />
               ))}
             </View>
           </>
