@@ -199,8 +199,7 @@ export default function SettingsScreen({ navigation, route }: Props) {
               <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, lineHeight: 20 }}>
                 · Assign tasks from an agent's profile{'\n'}
                 · Add memory facts so agents remember context{'\n'}
-                · Import Telegram bots to dispatch work there{'\n'}
-                · Upgrade to Pro for more AI messages
+                · Import your own agents and check their connection
               </Text>
             </View>
           </>

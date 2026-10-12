@@ -14,7 +14,6 @@ interface TaskDetailSheetProps {
   task: Task | null;
   visible: boolean;
   onClose: () => void;
-  onUpgrade?: () => void;
 }
 
 function statusLabel(status: string, done: boolean): string {
@@ -24,7 +23,7 @@ function statusLabel(status: string, done: boolean): string {
   return 'Open';
 }
 
-export default function TaskDetailSheet({ task, visible, onClose, onUpgrade }: TaskDetailSheetProps) {
+export default function TaskDetailSheet({ task, visible, onClose }: TaskDetailSheetProps) {
   const insets = useSafeAreaInsets();
   const { agents } = useAgents();
   const { tasks, runTask, toggleTask } = useTasks();
@@ -47,7 +46,6 @@ export default function TaskDetailSheet({ task, visible, onClose, onUpgrade }: T
     setRunning(false);
     if (result.error) {
       setError(result.error);
-      if (result.limitReached && onUpgrade) onUpgrade();
     }
   };
 

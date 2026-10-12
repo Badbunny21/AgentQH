@@ -144,10 +144,6 @@ export default function TasksScreen({ navigation }: Props) {
         task={selectedTask}
         visible={!!selectedTask}
         onClose={() => setSelectedTask(null)}
-        onUpgrade={() => {
-          setSelectedTask(null);
-          navigation.navigate('Upgrade');
-        }}
       />
     </View>
   );

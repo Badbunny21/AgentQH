@@ -1,18 +1,5 @@
 import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 
-export type PlanId = 'free' | 'pro' | 'team';
-
-export const PLAN_CHAT_LIMITS: Record<PlanId, number> = {
-  free: 50,
-  pro: 2000,
-  team: 10000,
-};
-
-export function getChatLimit(plan: string): number {
-  const key = plan as PlanId;
-  return PLAN_CHAT_LIMITS[key] ?? PLAN_CHAT_LIMITS.free;
-}
-
 export interface UsageProfile {
   plan: string;
   chat_messages_used: number;
@@ -31,19 +18,9 @@ export function resetUsageIfNeeded(profile: UsageProfile): { used: number; perio
 }
 
 export function checkChatAllowed(profile: UsageProfile): { allowed: boolean; used: number; limit: number; error?: string } {
-  const limit = getChatLimit(profile.plan);
   const { used } = resetUsageIfNeeded(profile);
-
-  if (used >= limit) {
-    return {
-      allowed: false,
-      used,
-      limit,
-      error: `Monthly chat limit reached (${limit} messages on ${profile.plan} plan). Upgrade to Pro for more.`,
-    };
-  }
-
-  return { allowed: true, used, limit };
+  // The app has no paid tiers. Usage remains a count, never a payment gate.
+  return { allowed: true, used, limit: Number.MAX_SAFE_INTEGER };
 }
 
 export async function incrementChatUsage(

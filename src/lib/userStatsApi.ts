@@ -1,7 +1,6 @@
 import { supabase } from './supabase';
 import { Agent } from '../constants/agents';
 import { Profile } from '../types/database';
-import { getChatLimit, PLAN_MONTHLY_PRICES } from '../constants/plans';
 
 export interface ConversationBackupStats {
   messageCount: number;
@@ -25,11 +24,8 @@ export interface AgentUsageRow {
 
 export interface AiUsageStats {
   chatMessagesUsed: number;
-  chatLimit: number;
   taskRunsThisMonth: number;
   totalAiActions: number;
-  planMonthlyCost: number;
-  planLabel: string;
   agentUsage: AgentUsageRow[];
 }
 
@@ -115,10 +111,6 @@ export async function fetchConversationBackupStats(
 export async function fetchAiUsageStats(userId: string, profile: Profile, agents: Agent[]): Promise<AiUsageStats> {
   const usageStart = effectiveUsageStart(profile);
   const chatMessagesUsed = profile.chat_messages_used ?? 0;
-  const chatLimit = getChatLimit(profile.plan);
-  const planKey = profile.plan as keyof typeof PLAN_MONTHLY_PRICES;
-  const planMonthlyCost = PLAN_MONTHLY_PRICES[planKey] ?? 0;
-  const planLabel = profile.plan.toUpperCase();
 
   const [{ data: messages, error: msgError }, { data: tasks, error: taskError }] = await Promise.all([
     supabase.from('messages').select('agent_id, role, created_at').eq('user_id', userId).gte('created_at', usageStart),
@@ -161,11 +153,8 @@ export async function fetchAiUsageStats(userId: string, profile: Profile, agents
 
   return {
     chatMessagesUsed,
-    chatLimit,
     taskRunsThisMonth,
     totalAiActions,
-    planMonthlyCost,
-    planLabel,
     agentUsage,
   };
 }
