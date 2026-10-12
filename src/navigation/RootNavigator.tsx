@@ -1,4 +1,6 @@
 import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { C, FONTS } from '../constants/theme';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -77,7 +79,7 @@ function TabNavigator() {
 }
 
 export default function RootNavigator() {
-  const { session, profile, isLoading, isConfigured } = useAuth();
+  const { session, profile, isLoading, isConfigured, profileError, refreshProfile, signOut } = useAuth();
 
   if (!isConfigured) {
     return <ConfigMissingScreen />;
@@ -85,6 +87,17 @@ export default function RootNavigator() {
 
   if (isLoading) {
     return <LoadingScreen />;
+  }
+
+  if (session && (profileError || !profile)) {
+    return (
+      <View style={{ flex: 1, backgroundColor: C.c0, padding: 28, alignItems: 'center', justifyContent: 'center', gap: 20 }}>
+        <Text style={{ fontFamily: FONTS.semibold, fontSize: 20, color: C.text }}>Could not load your profile</Text>
+        <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, textAlign: 'center' }}>Retry before opening your account. No setup changes have been made.</Text>
+        <TouchableOpacity onPress={() => void refreshProfile()}><Text style={{ color: C.a, fontFamily: FONTS.semibold }}>Retry</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => void signOut()}><Text style={{ color: C.textDim, fontFamily: FONTS.regular }}>Sign out</Text></TouchableOpacity>
+      </View>
+    );
   }
 
   const isAuthenticated = !!session;
