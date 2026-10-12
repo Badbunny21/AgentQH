@@ -234,7 +234,7 @@ export default function ImportTelegramScreen({ navigation, route }: Props) {
               </View>
             ) : null}
             <Field label="Agent name" value={name} onChangeText={setName} placeholder="Hermes" />
-            <Field label="Role" value={role} onChangeText={setRole} placeholder="Personal assistant" />
+            <Field label="Role" value={role} onChangeText={setRole} placeholder="Build monitor" />
             <Field
               label="Instructions / personality"
               value={bio}
@@ -256,7 +256,7 @@ export default function ImportTelegramScreen({ navigation, route }: Props) {
               label="Key facts (one per line)"
               value={memoriesText}
               onChangeText={setMemoriesText}
-              placeholder={'Prefers morning summaries\nKnows my timezone is EST\nAlways signs off with ⚡'}
+              placeholder={'Reports build failures\nUses the staging environment'}
               multiline
             />
             {memoryPreview.length > 0 && (
@@ -268,7 +268,7 @@ export default function ImportTelegramScreen({ navigation, route }: Props) {
               label="Conversation history (optional)"
               value={conversationText}
               onChangeText={setConversationText}
-              placeholder={'User: Hey Hermes\nHermes: Good morning! Ready to plan your day?\n\nUser: What\'s on my calendar?'}
+              placeholder={'User: Check the build\nAgent: The build passed'}
               multiline
             />
             {conversationPreview.length > 0 && (
