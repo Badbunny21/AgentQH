@@ -47,7 +47,7 @@ export default function AddMemorySheet({ visible, agentName, onClose, onSave }: 
             <TextInput
               value={text}
               onChangeText={setText}
-              placeholder="I'm on EST · prefer bullet summaries · no meetings before 10am"
+              placeholder="Project context this agent should use"
               placeholderTextColor={C.textMuted}
               multiline
               autoFocus
@@ -79,4 +79,4 @@ export default function AddMemorySheet({ visible, agentName, onClose, onSave }: 
       </View>
     </Modal>
   );
-}
+              }
