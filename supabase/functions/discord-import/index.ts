@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       bio,
       emblem: style.emblem,
       grad_key: style.gradKey,
-      status: 'online',
+      status: 'offline',
       activity: channelId ? `Imported · #${channelId.slice(-4)}` : `Imported · ${discordDisplayName(me.data)}`,
     })
     .select('id')
