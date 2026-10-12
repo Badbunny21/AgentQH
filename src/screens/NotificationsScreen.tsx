@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, RefreshControl, ActivityIndicator } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +16,12 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Notifications'>;
 };
 
+function activityColor(type: string): string {
+  if (type === 'task_assigned') return '#e879f9';
+  if (type.includes('handoff')) return '#22d3ee';
+  return C.a;
+}
+
 function activityIcon(type: string): string {
   if (type === 'task_done' || type === 'task_executed' || type === 'task_dispatched') return 'check';
   if (type === 'task_assigned') return 'plus';
@@ -26,7 +32,7 @@ function activityIcon(type: string): string {
 
 export default function NotificationsScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { activities, tasks, refresh, isLoading } = useTasks();
+  const { activities, tasks, refresh, isLoading, activityError } = useTasks();
   const { agents } = useAgents();
   const { workspaces, activeWorkspaceId, setActiveWorkspace, filterAgentIds } = useWorkspaces();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -39,35 +45,16 @@ export default function NotificationsScreen({ navigation }: Props) {
   );
 
   const feed = useMemo(() => {
-    const source =
-      activities.length > 0
-        ? activities
-        : tasks
-            .filter(t => t.agentId)
-            .slice(0, 20)
-            .map(t => {
-              const agentName = agents.find(a => a.id === t.agentId)?.name ?? 'Agent';
-              return {
-                id: `task-${t.id}`,
-                agentId: t.agentId,
-                taskId: t.id,
-                type: t.result ? 'task_done' : 'task_assigned',
-                summary: t.result ? `${agentName} completed "${t.title}"` : `Assigned "${t.title}" to ${agentName}`,
-                time: t.time,
-                createdAt: t.executedAt ?? '',
-              } satisfies Activity;
-            });
-
-    return source.filter(item => filterAgentIds([item.agentId]));
-  }, [activities, tasks, agents, filterAgentIds]);
+    return [...activities].filter(item => filterAgentIds([item.agentId]))
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  }, [activities, filterAgentIds]);
 
   const openItem = (item: Activity) => {
     if (item.taskId) {
       const task = tasks.find(t => t.id === item.taskId);
-      if (task) setSelectedTask(task);
-      return;
+      if (task) { setSelectedTask(task); return; }
     }
-    if (item.agentId) {
+    if (item.agentId && agents.some(a => a.id === item.agentId)) {
       navigation.navigate('AgentProfile', { agentId: item.agentId });
     }
   };
@@ -79,9 +66,9 @@ export default function NotificationsScreen({ navigation }: Props) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="chevL" size={18} color={C.text} />
         </TouchableOpacity>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ fontFamily: FONTS.semibold, fontSize: 18, color: C.text }}>Notifications</Text>
-          <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, marginTop: 2 }}>Activity feed · push alerts when enabled</Text>
+          <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, marginTop: 2 }}>Recorded updates from your agents</Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('Settings', { section: 'notifications' })} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="settings" size={16} color={C.text} />
@@ -105,16 +92,22 @@ export default function NotificationsScreen({ navigation }: Props) {
           </TouchableOpacity>
         )}
 
-        {feed.length === 0 ? (
+        {activityError && (
+          <View style={{ padding: 16, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, marginBottom: 16 }}>
+            <Text style={{ fontFamily: FONTS.medium, color: C.text, fontSize: 14 }}>{activityError}</Text>
+            <TouchableOpacity onPress={refresh} style={{ paddingTop: 12 }}><Text style={{ fontFamily: FONTS.medium, color: C.a }}>Retry</Text></TouchableOpacity>
+          </View>
+        )}
+        {isLoading && feed.length === 0 ? <ActivityIndicator color={C.a} style={{ marginTop: 40 }} /> : !activityError && feed.length === 0 ? (
           <View style={{ padding: 32, alignItems: 'center' }}>
             <Icon name="bell" size={32} color={C.textMuted} />
             <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text, marginTop: 16, marginBottom: 8 }}>
-              {activeWorkspace ? 'No activity in this workspace' : 'Nothing yet'}
+              {activeWorkspace ? 'No activity in this workspace' : 'No activity yet'}
             </Text>
             <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, textAlign: 'center', lineHeight: 20 }}>
               {activeWorkspace
                 ? 'Activity from agents in this workspace will show here.'
-                : 'Task updates, agent replies, and assignments will show here as you use AgentHQ.'}
+                : 'Recorded task updates, replies, and handoffs will appear here. No activity has been reported yet.'}
             </Text>
           </View>
         ) : (
@@ -122,17 +115,19 @@ export default function NotificationsScreen({ navigation }: Props) {
             <TouchableOpacity
               key={item.id}
               onPress={() => openItem(item)}
+              disabled={!((item.taskId && tasks.some(t => t.id === item.taskId)) || (item.agentId && agents.some(a => a.id === item.agentId)))}
               activeOpacity={0.85}
               style={{ flexDirection: 'row', gap: 12, padding: 14, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: 14, marginBottom: 8 }}
             >
-              <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name={activityIcon(item.type)} size={16} color={C.a} />
+              <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: C.c2, borderWidth: 1, borderColor: activityColor(item.type), alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name={activityIcon(item.type)} size={16} color={activityColor(item.type)} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.text, lineHeight: 20 }}>{item.summary}</Text>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: C.text, lineHeight: 20 }}>{item.summary}</Text>
+                <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, marginTop: 5 }}>{agents.find(a => a.id === item.agentId)?.name ?? (item.agentId ? 'Agent unavailable' : 'Account update')}</Text>
                 <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textDim, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 6 }}>{item.time}</Text>
               </View>
-              <Icon name="chevR" size={14} color={C.textMuted} />
+              {((item.taskId && tasks.some(t => t.id === item.taskId)) || (item.agentId && agents.some(a => a.id === item.agentId))) && <Icon name="chevR" size={14} color={C.textMuted} />}
             </TouchableOpacity>
           ))
         )}
