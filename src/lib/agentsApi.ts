@@ -30,8 +30,8 @@ export async function createAgent(userId: string, input: CreateAgentInput): Prom
       bio: input.bio?.trim() || '',
       emblem: style.emblem,
       grad_key: style.gradKey,
-      status: 'online',
-      activity: 'Just joined your roster',
+      status: 'offline',
+      activity: 'Not connected',
     })
     .select()
     .single();
