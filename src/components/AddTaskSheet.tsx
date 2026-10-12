@@ -77,7 +77,7 @@ export default function AddTaskSheet({ visible, onClose, defaultAgentId = null }
             <TextInput
               value={title}
               onChangeText={setTitle}
-              placeholder="Summarize my inbox and draft replies"
+              placeholder="Review the build logs and report errors"
               placeholderTextColor={C.textMuted}
               multiline
               style={{
