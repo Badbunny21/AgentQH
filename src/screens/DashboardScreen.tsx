@@ -196,18 +196,27 @@ export default function DashboardScreen({ navigation }: Props) {
         {/* Roster */}
         <View style={{ paddingHorizontal: 20, paddingBottom: 14, gap: 10 }}>
           {visibleAgents.length === 0 ? (
-            <View style={{ width: '100%', backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, padding: 24, alignItems: 'center' }}>
-              <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text, letterSpacing: -0.3, marginBottom: 8 }}>
-                {activeWorkspace ? 'No agents in this workspace' : 'No agents yet'}
-              </Text>
-              <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, textAlign: 'center', lineHeight: 20, marginBottom: 16 }}>
-                {activeWorkspace
-                  ? 'Assign agents from Workspaces, or clear the filter to see your full crew.'
-                  : "Add the AI agents you work with — they'll live here on your home screen."}
-              </Text>
-              <GhostChip icon={activeWorkspace ? 'folder' : 'plus'} onPress={() => navigation.navigate(activeWorkspace ? 'Workspaces' : 'AddAgent')}>
-                {activeWorkspace ? 'Manage workspace' : 'Add your first agent'}
-              </GhostChip>
+            <View style={{ width: '100%', backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, padding: 20 }}>
+              {agents.length === 0 && !activeWorkspace ? (
+                <>
+                  <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textMuted, letterSpacing: 1.2, marginBottom: 14 }}>ILLUSTRATION - NOT AN AGENT</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: C.c2, alignItems: 'center', justifyContent: 'center' }}><Icon name="plus" size={24} color={C.a} /></View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text }}>Your agent goes here</Text>
+                      <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, marginTop: 4 }}>Name, role and reported status</Text>
+                    </View>
+                  </View>
+                  <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, lineHeight: 20, marginTop: 14, marginBottom: 16 }}>Import your real agent to replace this illustration. No sample agent or history is saved.</Text>
+                  <GhostChip icon="plus" onPress={() => navigation.navigate('AddAgent')}>Import your first agent</GhostChip>
+                </>
+              ) : (
+                <>
+                  <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text, marginBottom: 8 }}>No agents in this workspace</Text>
+                  <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, lineHeight: 20, marginBottom: 16 }}>Assign agents from Workspaces, or clear the filter to see your full crew.</Text>
+                  <GhostChip icon="folder" onPress={() => navigation.navigate('Workspaces')}>Manage workspace</GhostChip>
+                </>
+              )}
             </View>
           ) : (
             visibleAgents.map(agent => (
@@ -299,4 +308,4 @@ export default function DashboardScreen({ navigation }: Props) {
       />
     </View>
   );
-}
+          }
