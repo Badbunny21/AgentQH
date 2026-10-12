@@ -10,8 +10,7 @@ export async function fetchMessages(userId: string, agentId: string): Promise<Ch
     .order('created_at', { ascending: true });
 
   if (error) {
-    console.error('[messages] fetch:', error.message);
-    return [];
+    throw new Error('Could not load conversation.');
   }
 
   return (data as MessageRow[]).map(rowToChatMessage);
