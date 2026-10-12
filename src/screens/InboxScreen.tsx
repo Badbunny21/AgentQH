@@ -125,7 +125,7 @@ export default function InboxScreen({ navigation }: Props) {
               {items.map(item => (
                 <TouchableOpacity
                   key={item.agentId}
-                  onPress={() => navigation.navigate('AgentProfile', { agentId: item.agentId })}
+                  onPress={() => navigation.navigate('AgentChat', { agentId: item.agentId })}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -163,4 +163,4 @@ export default function InboxScreen({ navigation }: Props) {
       </ScrollView>
     </View>
   );
-}
+            }
