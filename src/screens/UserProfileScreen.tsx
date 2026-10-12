@@ -13,6 +13,7 @@ import { useAgents } from '../contexts/AgentsContext';
 import { useTasks } from '../contexts/TasksContext';
 import { fetchUserDashboardStats } from '../lib/userStatsApi';
 import Icon from '../components/Icon';
+import { showProUpsell } from '../lib/authHydration';
 
 const BACKUP_KEY = 'agenthq_backup_enabled';
 
@@ -270,13 +271,14 @@ export default function UserProfileScreen({ navigation }: Props) {
           <View style={{ height: 6, backgroundColor: C.c2, borderRadius: 999, overflow: 'hidden' }}>
             <View style={{ height: '100%', width: `${chatFraction * 100}%`, backgroundColor: chatUsed >= chatLimit ? '#f87171' : C.a, borderRadius: 999 }} />
           </View>
-          {chatUsed >= chatLimit && (
+          {chatUsed >= chatLimit && showProUpsell(profile?.plan) && (
             <TouchableOpacity onPress={() => navigation.navigate('Upgrade')} style={{ marginTop: 12 }}>
               <Text style={{ fontFamily: FONTS.medium, fontSize: 13, color: C.a }}>Upgrade for more messages →</Text>
             </TouchableOpacity>
           )}
         </View>
 
+        {showProUpsell(profile?.plan) && (
         <TouchableOpacity onPress={() => navigation.navigate('Upgrade')} style={{ marginHorizontal: 16, marginBottom: 24 }} activeOpacity={0.9}>
           <LinearGradient
             colors={['#a3e635', '#22d3ee', '#e879f9']}
@@ -297,6 +299,7 @@ export default function UserProfileScreen({ navigation }: Props) {
             </View>
           </LinearGradient>
         </TouchableOpacity>
+        )}
 
         <View style={{ marginHorizontal: 16, marginBottom: 12, flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity
