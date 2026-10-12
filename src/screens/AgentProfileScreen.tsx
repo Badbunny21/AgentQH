@@ -374,10 +374,6 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
         task={selectedTask}
         visible={!!selectedTask}
         onClose={() => setSelectedTask(null)}
-        onUpgrade={() => {
-          setSelectedTask(null);
-          navigation.navigate('Upgrade');
-        }}
       />
     </View>
   );
