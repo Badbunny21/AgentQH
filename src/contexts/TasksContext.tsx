@@ -8,6 +8,7 @@ interface TasksContextType {
   tasks: Task[];
   activities: Activity[];
   isLoading: boolean;
+  activityError: string | null;
   refresh: () => Promise<void>;
   addTask: (title: string, agentId: string | null, dispatch?: boolean) => Promise<{ error: string | null; limitReached?: boolean; taskId?: string }>;
   runTask: (taskId: string) => Promise<{ error: string | null; limitReached?: boolean }>;
@@ -22,21 +23,26 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [activityError, setActivityError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (!session?.user.id) {
       setTasks([]);
       setActivities([]);
+      setActivityError(null);
       return;
     }
     setIsLoading(true);
-    const [taskList, activityList] = await Promise.all([
-      fetchTasks(session.user.id),
-      fetchActivities(session.user.id),
-    ]);
-    setTasks(taskList);
-    setActivities(activityList);
-    setIsLoading(false);
+    try {
+      const [taskList, activityResult] = await Promise.all([
+        fetchTasks(session.user.id),
+        fetchActivities(session.user.id).then(data => ({ data, error: null as string | null }))
+          .catch(() => ({ data: null, error: 'Could not load activity. Please try again.' })),
+      ]);
+      setTasks(taskList);
+      setActivityError(activityResult.error);
+      if (activityResult.data) setActivities(activityResult.data);
+    } finally { setIsLoading(false); }
   }, [session?.user.id]);
 
   useEffect(() => {
@@ -101,7 +107,7 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <TasksContext.Provider value={{ tasks, activities, isLoading, refresh, addTask, runTask, toggleTask }}>
+    <TasksContext.Provider value={{ tasks, activities, isLoading, activityError, refresh, addTask, runTask, toggleTask }}>
       {children}
     </TasksContext.Provider>
   );
