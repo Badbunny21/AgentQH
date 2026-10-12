@@ -68,6 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hydrationRef.current = hydrator;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       authEventReceived = true;
+      // Hide the previous route immediately while a new signed-in profile loads.
+      if (nextSession) { setIsLoading(true); setProfileError(false); }
       // Defer profile queries outside Supabase's auth callback lock.
       setTimeout(() => { if (active) void hydrator.load(nextSession); }, 0);
     });
@@ -118,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pushTokenRef.current = null;
     }
     await supabase.auth.signOut();
-    setProfile(null);
+    await hydrationRef.current?.load(null);
   };
 
   const deleteAccount = async () => {
@@ -196,4 +198,4 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
-}
+                                                                       }
