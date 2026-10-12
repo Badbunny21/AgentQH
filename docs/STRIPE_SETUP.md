@@ -1,3 +1,5 @@
+> ARCHIVED: Payments and paid-tier UI were removed from the app. This document describes the old setup, not a working current flow. Server billing functions/config remain for compatibility. Do not follow these steps to launch the app, and do not assume UI removal cancelled a subscription.
+
 # Stripe setup for AgentHQ Pro subscriptions
 
 ## 1. Create product in Stripe Dashboard

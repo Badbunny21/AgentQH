@@ -8,10 +8,11 @@
     "android": "expo start --android --lan",
     "ios": "expo start --ios --lan",
     "web": "expo start --web",
-    "test": "node --experimental-strip-types --test tests/commandProtocol.test.mjs tests/commandLoop.e2e.test.mjs",
+    "test": "node --experimental-strip-types --test tests/*.mjs",
     "build:ios": "eas build --platform ios --profile preview",
     "build:ios:prod": "eas build --platform ios --profile production",
-    "submit:ios": "eas submit --platform ios --profile production"
+    "submit:ios": "eas submit --platform ios --profile production",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
