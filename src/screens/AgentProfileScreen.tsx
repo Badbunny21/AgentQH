@@ -296,7 +296,7 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
         </View>
         <View style={{ paddingHorizontal: 20, paddingBottom: 4 }}>
           <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, lineHeight: 19, marginBottom: 12 }}>
-            Facts {agent.name} keeps across chats and tasks — preferences, context, how you work. You own this data.
+            Saved context for {agent.name}. How the agent uses it depends on its setup.
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 8 }}>
             <Icon name="brain" size={12} color={C.textDim} />
