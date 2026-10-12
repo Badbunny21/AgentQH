@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { registerForPushNotificationsAsync, savePushToken, removePushToken } from '../lib/pushNotifications';
 import { deleteAccountForever } from '../lib/deleteAccountApi';
+import { createAuthHydrator } from '../lib/authHydration';
 import { Profile } from '../types/database';
 
 const LOCAL_STORAGE_KEYS = ['agenthq_active_workspace_id', 'agenthq_backup_enabled'];
@@ -13,6 +14,7 @@ interface AuthContextType {
   profile: Profile | null;
   isLoading: boolean;
   isConfigured: boolean;
+  profileError: boolean;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -42,45 +44,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
+  const hydrationRef = useRef<ReturnType<typeof createAuthHydrator<Session, Profile>> | null>(null);
+  const currentSessionRef = useRef<Session | null>(null);
   const pushTokenRef = useRef<string | null>(null);
 
   const refreshProfile = useCallback(async () => {
-    if (!session?.user.id) {
-      setProfile(null);
-      return;
-    }
-    const p = await fetchProfile(session.user.id);
-    setProfile(p);
-  }, [session?.user.id]);
-
-  useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setIsLoading(false);
-      return;
-    }
-
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      if (s?.user.id) {
-        fetchProfile(s.user.id).then(setProfile);
-      }
-      setIsLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      if (s?.user.id) {
-        fetchProfile(s.user.id).then(setProfile);
-      } else {
-        setProfile(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    await hydrationRef.current?.load(currentSessionRef.current);
   }, []);
 
   useEffect(() => {
-    if (!session?.user.id || profile?.push_notifications_enabled === false) return;
+    if (!isSupabaseConfigured) { setIsLoading(false); return; }
+    let active = true;
+    let authEventReceived = false;
+    const hydrator = createAuthHydrator<Session, Profile>(fetchProfile, state => {
+      if (!active) return;
+      currentSessionRef.current = state.session;
+      setSession(state.session);
+      setProfile(state.profile);
+      setIsLoading(state.isLoading);
+      setProfileError(state.profileError);
+    });
+    hydrationRef.current = hydrator;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      authEventReceived = true;
+      // Hide the previous route immediately while a new signed-in profile loads.
+      if (nextSession) { setIsLoading(true); setProfileError(false); }
+      // Defer profile queries outside Supabase's auth callback lock.
+      setTimeout(() => { if (active) void hydrator.load(nextSession); }, 0);
+    });
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (active && !authEventReceived) void hydrator.load(initialSession);
+    }).catch(() => { if (active && !authEventReceived) void hydrator.load(null); });
+    return () => { active = false; hydrator.invalidate(); subscription.unsubscribe(); hydrationRef.current = null; };
+  }, []);
+
+  useEffect(() => {
+    if (isLoading || !session?.user.id || !profile || profile.push_notifications_enabled === false) return;
 
     let cancelled = false;
     (async () => {
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [session?.user.id, profile?.push_notifications_enabled]);
+  }, [isLoading, session?.user.id, profile?.push_notifications_enabled, !!profile]);
 
   const signUp = async (email: string, password: string, name: string) => {
     const { data, error } = await supabase.auth.signUp({
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       pushTokenRef.current = null;
     }
     await supabase.auth.signOut();
-    setProfile(null);
+    await hydrationRef.current?.load(null);
   };
 
   const deleteAccount = async () => {
@@ -178,6 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         session,
         profile,
         isLoading,
+        profileError,
         isConfigured: isSupabaseConfigured,
         signUp,
         signIn,
