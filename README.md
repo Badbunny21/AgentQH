@@ -20,7 +20,7 @@ The goal is a second front door into an agent you already own and run elsewhere.
 
 ### Core principle
 
-Our design rule: AgentHQ should never think for the agent. The agent's intelligence stays wherever it already runs. AgentHQ is a window and a remote control, not a replacement brain. The command/report path follows that rule; the legacy client-side chat path has been removed.
+Our design rule: AgentHQ should never think for the agent. The agent's intelligence stays wherever it already runs. AgentHQ is a window and a remote control, not a replacement brain. The command/report path follows that rule. The app shows recorded conversations; its composer is explicitly draft-only until sending is connected.
 
 ## Design previews
 
@@ -39,9 +39,17 @@ AgentHQ is an in-progress prototype, with app code and a command/report foundati
 ### Implemented in the repo
 
 - Expo app screens and data access for agents, tasks, memory, handoffs and workspaces.
+- Recorded activity feed with loading/error/retry states and no invented task-completion fallback.
+- Agent conversation history from Inbox and agent profiles; draft-only composer, no simulated delivery or live progress.
+- Monthly usage breakdown per agent. Dollar spend is unavailable until real cost telemetry is supplied; activity counts are not API bills.
+- Original lime/cyan/magenta accents and gradient navigation. No paid plans or upgrade UI.
 - A "Give it a job" panel with command status, progress, report history, results and a stale-agent warning.
 - Backend code for issuing an agent key, creating commands, letting an external agent claim them, and recording acknowledgments, progress, results or errors.
 - Automated tests for the command/report flow using the real handlers against an in-memory backend emulator.
+
+### Team integration boundary
+
+The app surfaces are prepared for the team to wire up. The connector, import/runtime plumbing, message delivery, progress streaming and cost telemetry are separate work. No screenshot or passing local test proves those connections.
 
 ### Still in progress
 
@@ -62,7 +70,7 @@ The [project landing page](https://agent-qh.vercel.app) introduces the concept. 
 
 - **App:** Expo / React Native with TypeScript (one codebase for iOS and Android)
 - **Backend:** Supabase (Postgres, Auth, Edge Functions)
-- **Integrations:** Telegram, Discord, Stripe, push notifications
+- **Integration source:** Telegram, Discord and push notifications; runtime connector work remains separate. Stripe server code is retained but has no app checkout route.
 - **Website source:** Next.js in `website/`; the public Vercel landing is a separate standalone deployment.
 
 ## Project structure
@@ -72,7 +80,7 @@ The [project landing page](https://agent-qh.vercel.app) introduces the concept. 
 ├── App.tsx              App entry point
 ├── src/
 │   ├── components/      Reusable UI components
-│   ├── constants/       Theme, plans, templates, demo data
+│   ├── constants/       Theme, agent metadata and platform labels
 │   ├── contexts/        React context providers (auth, agents, tasks, workspaces)
 │   ├── lib/             API clients, including commandsApi.ts for commands/reports
 │   ├── navigation/      Navigators and tab bar
@@ -83,7 +91,7 @@ The [project landing page](https://agent-qh.vercel.app) introduces the concept. 
 │   │                    Command/report: agent-key-issue, agent-commands-create,
 │   │                    agent-commands-poll, agent-report and shared protocol
 │   └── migrations/      Database schema migrations
-├── tests/               Command protocol + emulator command/report tests
+├── tests/               Protocol/emulator tests + app-state regression tests
 ├── landing/             Captured public landing HTML, awaiting the reviewed logo
 ├── website/             Marketing site (Next.js)
 └── docs/                Setup guides
@@ -131,7 +139,8 @@ npm start
 | `npm run web` | Browser preview |
 | `npm run android` | Start with an installed Android emulator |
 | `npm run ios` | Start the iOS Simulator on macOS |
-| `npm test` | Local command/report emulator and protocol tests |
+| `npm test` | Full local protocol/emulator and app-state test suite |
+| `npm run typecheck` | Root app TypeScript check |
 
 ### What this preview does and does not prove
 
@@ -139,7 +148,7 @@ The Supabase project must already have the required schema and Edge Functions co
 
 **Do not import a Telegram bot already used by Hermes through the current import wizard.** That wizard changes the bot webhook and can interrupt the existing runtime. A non-invasive runtime connection is still separate work.
 
-Database migrations are in `supabase/migrations/`. Before applying them, review the SQL and verify the exact target project and migration history with the [Supabase CLI](https://supabase.com/docs/guides/cli). Do not run `supabase db push` against an existing project just to launch this preview. Billing setup is in [docs/STRIPE_SETUP.md](docs/STRIPE_SETUP.md).
+Database migrations are in `supabase/migrations/`. Before applying them, review the SQL and verify the exact target project and migration history with the [Supabase CLI](https://supabase.com/docs/guides/cli). Do not run `supabase db push` against an existing project just to launch this preview. Stripe notes are archived in [docs/STRIPE_SETUP.md](docs/STRIPE_SETUP.md); they are not current app setup. Removing payment UI does not cancel existing subscriptions. Server plan-gate source has been removed, but deployment of those Edge Functions is still pending.
 
 ### Website source
 
@@ -152,6 +161,12 @@ npm run dev
 ```
 
 For a production build, run `npm run build` in `website`. The website source in this repository currently differs from the public Vercel landing page. Confirm Vercel's deployment source before deploying it; do not overwrite the public page with this older copy.
+
+## Code-health checks
+
+The root app and `website/` have separate lockfiles. Run `npm ci`, `npm test`, `npm run typecheck`, and `npx expo export --platform web` at the root. Run `npm ci` and `npm run build` separately in `website/`. These checks do not verify live connectors, billing, iPhone keyboard behavior or production access policies.
+
+No lint configuration is installed yet. Dependency advisories remain in both lockfiles; review `npm audit` in each directory. Do not force an Expo downgrade or assume a passing build means security is cleared.
 
 ## Built for LA Hacks
 
