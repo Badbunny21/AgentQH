@@ -1,10 +1,9 @@
-import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Animated,
   StatusBar,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,12 +17,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAgents } from '../contexts/AgentsContext';
 import { useWorkspaces } from '../contexts/WorkspacesContext';
 import { fetchHandoffs, Handoff } from '../lib/handoffsApi';
-import AgentAvatar from '../components/AgentAvatar';
 import AddTaskSheet from '../components/AddTaskSheet';
 import TaskDetailSheet from '../components/TaskDetailSheet';
 import HandoffCard from '../components/HandoffCard';
 import Icon from '../components/Icon';
 import { GhostChip } from '../components/Buttons';
+import { countNeedsAttention, rosterStatusLabel } from '../lib/homeSummary';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList> & {
@@ -33,73 +32,32 @@ type Props = {
 
 function StatBlock({ value, label }: { value: string | number; label: string }) {
   return (
-    <View style={{ flex: 1 }}>
-      <Text style={{ fontFamily: FONTS.semibold, fontSize: 30, color: C.text, letterSpacing: -1.2, lineHeight: 30 }}>
-        {value}
-      </Text>
-      <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textDim, letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 6 }}>
-        {label}
-      </Text>
+    <View style={{ flex: 1, backgroundColor: C.c1, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 16, padding: 12 }}>
+      <Text style={{ fontFamily: FONTS.semibold, fontSize: 26, color: C.text, lineHeight: 29 }}>{value}</Text>
+      <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textDim, letterSpacing: 1, textTransform: 'uppercase', marginTop: 3 }}>{label}</Text>
     </View>
   );
 }
 
 function AgentCard({ agent, onPress }: { agent: Agent; onPress: () => void }) {
-  const blinkAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    if (agent.status === 'online') {
-      const anim = Animated.loop(
-        Animated.sequence([
-          Animated.timing(blinkAnim, { toValue: 0.25, duration: 700, useNativeDriver: true }),
-          Animated.timing(blinkAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
-        ])
-      );
-      anim.start();
-      return () => anim.stop();
-    }
-  }, [agent.status]);
-
-  const gradColors = GRAD_KEYS[agent.gradKey] || ['#a3e635', '#22d3ee'];
-  const statusLabel = { online: 'ONLINE', away: 'AWAY', busy: 'BUSY', offline: 'OFFLINE' }[agent.status];
-
+  // Preserve the stored roster state. Online is not evidence of execution.
+  const statusLabel = rosterStatusLabel(agent.status);
+  const color = GRAD_KEYS[agent.gradKey]?.[0] || C.a;
+  const statusColor = agent.status === 'away' ? C.away : agent.status === 'offline' ? C.offline : color;
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={{
-        backgroundColor: C.c1,
-        borderWidth: 1,
-        borderColor: C.border,
-        borderRadius: C.radius,
-        padding: 14,
-        gap: 10,
-        overflow: 'hidden',
-      }}
-      activeOpacity={0.8}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <AgentAvatar agent={agent} size={48} />
-        <Text style={{ fontFamily: FONTS.mono, fontSize: 9.5, color: C.textDim, letterSpacing: 1, textTransform: 'uppercase' }}>
-          {statusLabel}
-        </Text>
+    <TouchableOpacity onPress={onPress} accessibilityRole="button" accessibilityLabel={`${agent.name}, ${statusLabel}. Open agent`} activeOpacity={0.8}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.c1, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 18, padding: 14 }}>
+      <View style={{ width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: color, backgroundColor: `${color}15`, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontFamily: FONTS.semibold, fontSize: 21, color }}>{Array.from(agent.name.trim())[0]?.toUpperCase() || '?'}</Text>
       </View>
-      <View>
-        <Text style={{ fontFamily: FONTS.semibold, fontSize: 16, color: C.text, letterSpacing: -0.3, lineHeight: 17.6 }}>
-          {agent.name}
-        </Text>
-        <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, marginTop: 2, letterSpacing: -0.1 }}>
-          {agent.role}
-        </Text>
-      </View>
-      <View style={{ backgroundColor: C.c2, borderRadius: 10, padding: 8, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-        {agent.status === 'online' ? (
-          <Animated.View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: gradColors[0], opacity: blinkAnim, flexShrink: 0 }} />
-        ) : (
-          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.textMuted, flexShrink: 0 }} />
-        )}
-        <Text style={{ fontFamily: FONTS.regular, fontSize: 11, color: C.textDim, letterSpacing: -0.1, flex: 1 }} numberOfLines={1}>
-          {agent.activity}
-        </Text>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text numberOfLines={1} style={{ flex: 1, fontFamily: FONTS.semibold, fontSize: 17, color: C.text }}>{agent.name}</Text>
+          <View style={{ borderColor: statusColor, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
+            <Text style={{ fontFamily: FONTS.semibold, fontSize: 9, letterSpacing: 1, color: statusColor, textTransform: 'uppercase' }}>{statusLabel}</Text>
+          </View>
+        </View>
+        <Text numberOfLines={2} style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, lineHeight: 18, marginTop: 4 }}>{agent.activity || agent.role}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -107,7 +65,7 @@ function AgentCard({ agent, onPress }: { agent: Agent; onPress: () => void }) {
 
 export default function DashboardScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { profile, session } = useAuth();
+  const { session } = useAuth();
   const { agents } = useAgents();
   const { tasks, activities, refresh } = useTasks();
   const {
@@ -169,10 +127,8 @@ export default function DashboardScreen({ navigation }: Props) {
   };
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const firstName = profile?.name?.split(' ')[0] || 'there';
-  const doneCount = visibleTasks.filter(t => t.done).length;
-  const pendingCount = visibleTasks.filter(t => !t.done).length;
-  const onlineCount = visibleAgents.filter(a => a.status === 'online').length;
+  // Needs you counts actual task execution errors, never every open task.
+  const needsYouCount = countNeedsAttention(visibleTasks);
   const visibleHandoffs = handoffs.filter(h => filterAgentIds([h.fromAgentId, h.toAgentId]));
 
   return (
@@ -190,8 +146,8 @@ export default function DashboardScreen({ navigation }: Props) {
               {greeting}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ fontFamily: FONTS.semibold, fontSize: 26, color: C.text, letterSpacing: -0.7, lineHeight: 27.3 }}>
-                {firstName}
+              <Text style={{ fontFamily: FONTS.semibold, fontSize: 30, color: C.text, letterSpacing: -0.7, lineHeight: 34 }}>
+                Your crew
               </Text>
               <Text style={{ fontFamily: FONTS.semibold, fontSize: 26, color: C.a }}>.</Text>
             </View>
@@ -216,12 +172,10 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
 
         {/* Stats */}
-        <View style={{ paddingHorizontal: 20, paddingBottom: 22, flexDirection: 'row', gap: 18 }}>
-          <StatBlock value={visibleAgents.length} label="On roster" />
-          <View style={{ width: 1, backgroundColor: C.border }} />
-          <StatBlock value={doneCount} label="Done today" />
-          <View style={{ width: 1, backgroundColor: C.border }} />
-          <StatBlock value={pendingCount} label="In flight" />
+        <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', gap: 8 }}>
+          <StatBlock value={visibleAgents.length} label="Agents" />
+          <StatBlock value={visibleTasks.length} label="Tasks" />
+          <StatBlock value={needsYouCount} label="Needs you" />
         </View>
 
         {activeWorkspace && (
@@ -239,14 +193,8 @@ export default function DashboardScreen({ navigation }: Props) {
           </View>
         )}
 
-        {/* Your crew */}
-        <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <Text style={{ fontFamily: FONTS.semibold, fontSize: 18, color: C.text, letterSpacing: -0.4 }}>Your crew</Text>
-          <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: C.textDim, letterSpacing: 1.2, textTransform: 'uppercase' }}>
-            {onlineCount} ONLINE
-          </Text>
-        </View>
-        <View style={{ paddingHorizontal: 20, paddingBottom: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+        {/* Roster */}
+        <View style={{ paddingHorizontal: 20, paddingBottom: 14, gap: 10 }}>
           {visibleAgents.length === 0 ? (
             <View style={{ width: '100%', backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, padding: 24, alignItems: 'center' }}>
               <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text, letterSpacing: -0.3, marginBottom: 8 }}>
@@ -262,8 +210,8 @@ export default function DashboardScreen({ navigation }: Props) {
               </GhostChip>
             </View>
           ) : (
-            visibleAgents.slice(0, 6).map(agent => (
-              <View key={agent.id} style={{ width: '47.5%' }}>
+            visibleAgents.map(agent => (
+              <View key={agent.id}>
                 <AgentCard
                   agent={agent}
                   onPress={() => navigation.navigate('AgentProfile', { agentId: agent.id })}
@@ -273,16 +221,9 @@ export default function DashboardScreen({ navigation }: Props) {
           )}
         </View>
 
-        {/* Quick actions */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 8 }}>
-          <GhostChip icon="plus" onPress={() => setShowAddTask(true)}>New task</GhostChip>
-          <GhostChip icon="share" onPress={() => navigation.navigate('Collaborate')}>Collaborate</GhostChip>
-          <GhostChip icon="folder" onPress={() => navigation.navigate('Workspaces')}>Workspaces</GhostChip>
-        </ScrollView>
-
-        {/* Today's activity */}
+        {/* Recent activity: historical items are not presented as today. */}
         <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <Text style={{ fontFamily: FONTS.semibold, fontSize: 18, color: C.text, letterSpacing: -0.4 }}>Today's activity</Text>
+          <Text style={{ fontFamily: FONTS.semibold, fontSize: 18, color: C.text, letterSpacing: -0.4 }}>Recent activity</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
             <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim }}>See all →</Text>
           </TouchableOpacity>
@@ -302,16 +243,22 @@ export default function DashboardScreen({ navigation }: Props) {
                 onPress={() => item.taskId && openTask(item.taskId)}
                 disabled={!item.taskId}
                 activeOpacity={item.taskId ? 0.85 : 1}
-                style={{ padding: 14, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: 14 }}
+                style={{ paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: C.borderStrong }}
               >
-                <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.text, lineHeight: 19 }}>{item.summary}</Text>
-                <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: item.taskId ? C.a : C.textDim, marginTop: 6, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-                  {item.taskId ? 'Tap to review →' : item.time}
-                </Text>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: item.type === 'task_done' ? C.b : C.a }} />
+                <Text numberOfLines={2} style={{ flex: 1, fontFamily: FONTS.regular, fontSize: 14, color: C.text, lineHeight: 20 }}>{item.summary}</Text>
+                <Text style={{ maxWidth: 64, fontFamily: FONTS.regular, fontSize: 10, color: C.textMuted }}>{item.time}</Text>
               </TouchableOpacity>
             ))
           )}
         </View>
+
+        {/* Quick actions */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 8 }}>
+          <GhostChip icon="plus" onPress={() => setShowAddTask(true)}>New task</GhostChip>
+          <GhostChip icon="share" onPress={() => navigation.navigate('Collaborate')}>Collaborate</GhostChip>
+          <GhostChip icon="folder" onPress={() => navigation.navigate('Workspaces')}>Workspaces</GhostChip>
+        </ScrollView>
 
         {/* Handoffs */}
         <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
