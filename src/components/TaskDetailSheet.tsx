@@ -7,6 +7,8 @@ import { useAgents } from '../contexts/AgentsContext';
 import { PrimaryButton, SecondaryButton } from './Buttons';
 import AgentAvatar from './AgentAvatar';
 import Icon from './Icon';
+import useAgentConnection from '../hooks/useAgentConnection';
+import { connectionLabel } from '../lib/agentConnection';
 
 interface TaskDetailSheetProps {
   task: Task | null;
@@ -30,6 +32,8 @@ export default function TaskDetailSheet({ task, visible, onClose, onUpgrade }: T
   const [error, setError] = useState<string | null>(null);
 
   const liveTask = task ? tasks.find(t => t.id === task.id) ?? task : null;
+
+  const connection = useAgentConnection(visible ? liveTask?.agentId ?? undefined : undefined);
 
   if (!visible || !liveTask) return null;
 
@@ -98,7 +102,7 @@ export default function TaskDetailSheet({ task, visible, onClose, onUpgrade }: T
               <View>
                 <Text style={{ fontFamily: FONTS.medium, fontSize: 14, color: C.text }}>{agent.name}</Text>
                 <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textDim, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 2 }}>
-                  {agent.origin === 'AgentHQ' ? 'Executes in app' : `Also syncs to ${agent.origin}`}
+                  {connectionLabel(connection)}
                 </Text>
               </View>
             </View>
