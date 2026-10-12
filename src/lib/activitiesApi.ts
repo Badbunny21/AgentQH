@@ -53,8 +53,7 @@ export async function fetchActivities(userId: string, limit = 20): Promise<Activ
     .limit(limit);
 
   if (error) {
-    console.error('[activities] fetch:', error.message);
-    return [];
+    throw new Error('Could not load activity. Please try again.');
   }
   return (data as ActivityRow[]).map(rowToActivity);
 }
