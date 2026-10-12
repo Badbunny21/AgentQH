@@ -237,6 +237,12 @@ export default function UserProfileScreen({ navigation }: Props) {
 
         </View>
 
+        <TouchableOpacity onPress={() => navigation.navigate('AiSpend')} style={{ marginHorizontal: 16, marginBottom: 18, padding: 18, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, backgroundColor: C.c1 }}>
+          <Text style={{ fontFamily: FONTS.semibold, fontSize: 16, color: C.text }}>AI spend</Text>
+          <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, marginTop: 8 }}>Monthly total unavailable</Text>
+          <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, marginTop: 6 }}>Cost reporting not connected · View agent usage →</Text>
+        </TouchableOpacity>
+
         <View style={{ marginHorizontal: 16, marginBottom: 18, padding: 16, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }}>
             <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}>
