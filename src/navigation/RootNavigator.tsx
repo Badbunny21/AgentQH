@@ -15,6 +15,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import InboxScreen from '../screens/InboxScreen';
 import TasksScreen from '../screens/TasksScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
+import AiSpendScreen from '../screens/AiSpendScreen';
 import AgentChatScreen from '../screens/AgentChatScreen';
 import AgentProfileScreen from '../screens/AgentProfileScreen';
 import MemoryScreen from '../screens/MemoryScreen';
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   Main: undefined;
   AgentProfile: { agentId: string };
   AgentChat: { agentId: string };
+  AiSpend: undefined;
   Memory: undefined;
   AddAgent: undefined;
   ImportTelegram: { fromOnboarding?: boolean } | undefined;
@@ -114,12 +116,14 @@ export default function RootNavigator() {
             <Stack.Screen name="Migration" component={MigrationScreen} />
             <Stack.Screen name="ImportTelegram" component={ImportTelegramScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="ImportDiscord" component={ImportDiscordScreen} options={{ animation: 'slide_from_right' }} />
+            <Stack.Screen name="AiSpend" component={AiSpendScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="AgentChat" component={AgentChatScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="AgentProfile" component={AgentProfileScreen} options={{ animation: 'slide_from_right' }} />
           </>
         ) : (
           <>
             <Stack.Screen name="Main" component={TabNavigator} />
+            <Stack.Screen name="AiSpend" component={AiSpendScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="AgentChat" component={AgentChatScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="AgentProfile" component={AgentProfileScreen} options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="Memory" component={MemoryScreen} options={{ animation: 'slide_from_right' }} />
