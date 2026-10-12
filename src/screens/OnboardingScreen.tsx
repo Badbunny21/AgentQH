@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -60,6 +61,8 @@ function SlideHero({ idx }: { idx: number }) {
 export default function OnboardingScreen({ navigation }: Props) {
   const [idx, setIdx] = useState(0);
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const compact = height < 780;
   const slide = SLIDES[idx];
   const isLast = idx === SLIDES.length - 1;
 
@@ -87,8 +90,8 @@ export default function OnboardingScreen({ navigation }: Props) {
       </View>
 
       {/* Hero area */}
-      <View style={{ position: 'absolute', top: insets.top + 80, left: 32, right: 32, alignItems: 'center', justifyContent: 'center', height: 260 }}>
-        <SlideHero idx={idx} />
+      <View style={{ position: 'absolute', top: insets.top + (compact ? 48 : 80), left: 32, right: 32, alignItems: 'center', justifyContent: 'center', height: compact ? 180 : 260 }}>
+        <View style={{ width: '100%', transform: [{ scale: compact ? 0.75 : 1 }] }}><SlideHero idx={idx} /></View>
       </View>
 
       {/* Text content */}
@@ -96,7 +99,7 @@ export default function OnboardingScreen({ navigation }: Props) {
         <Text style={{ fontFamily: FONTS.mono, fontSize: 11, color: C.a, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>
           {slide.eyebrow}
         </Text>
-        <Text style={{ fontFamily: FONTS.semibold, fontSize: 34, color: C.text, letterSpacing: -1.1, lineHeight: 36, marginBottom: 16 }}>
+        <Text style={{ fontFamily: FONTS.semibold, fontSize: compact ? 28 : 34, color: C.text, letterSpacing: -1.1, lineHeight: compact ? 30 : 36, marginBottom: 16 }}>
           {slide.title}
         </Text>
         <Text style={{ fontFamily: FONTS.regular, fontSize: 15, color: C.textDim, lineHeight: 22.5, letterSpacing: -0.2 }}>
