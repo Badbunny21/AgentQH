@@ -122,7 +122,7 @@ export default function MigrationScreen({ navigation }: Props) {
                   <AgentAvatar agent={agent} size={44} showStatus={false} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: FONTS.semibold, fontSize: 16, color: C.text, letterSpacing: -0.3 }}>{agent.name}</Text>
-                    <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, marginTop: 2 }}>{agent.role} · {agent.origin}</Text>
+                    <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, marginTop: 2 }}>{agent.role}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
