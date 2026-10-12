@@ -215,11 +215,11 @@ export default function UserProfileScreen({ navigation }: Props) {
           </View>
         </TouchableOpacity>
 
-        <View style={{ marginHorizontal: 16, marginBottom: 24, padding: 18, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius }}>
-          <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: C.textDim, letterSpacing: 1.5 }}>ROSTER SIZE</Text>
-          <Text style={{ fontFamily: FONTS.semibold, fontSize: 24, color: C.a, marginTop: 8 }}>{agentCount}</Text>
-          <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, marginTop: 8 }}>All app features are available. No subscription required.</Text>
-        </View>
+        <LinearGradient colors={['#a3e635', '#22d3ee', '#e879f9']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ marginHorizontal: 16, marginBottom: 24, padding: 18, borderRadius: C.radius }}>
+          <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: 'rgba(10,10,15,0.7)', letterSpacing: 1.5 }}>ROSTER SIZE</Text>
+          <Text style={{ fontFamily: FONTS.semibold, fontSize: 24, color: '#0a0a0f', marginTop: 8 }}>{agentCount}</Text>
+          <Text style={{ fontFamily: FONTS.medium, fontSize: 13, color: 'rgba(10,10,15,0.85)', marginTop: 8 }}>All app features are available. No subscription required.</Text>
+        </LinearGradient>
 
         <View style={{ marginHorizontal: 16, marginBottom: 12, flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity
