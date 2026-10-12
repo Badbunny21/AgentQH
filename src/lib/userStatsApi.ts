@@ -88,7 +88,7 @@ export async function fetchConversationBackupStats(
 ): Promise<ConversationBackupStats> {
   const { data, error } = await supabase
     .from('messages')
-    .select('agent_id, created_at')
+    .select('agent_id, created_at, channel')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
@@ -99,13 +99,7 @@ export async function fetchConversationBackupStats(
 
   const rows = data ?? [];
   const threadIds = new Set(rows.map(r => r.agent_id));
-  const agentById = new Map(agents.map(a => [a.id, a]));
-  const platformOrigins = new Set<string>();
-
-  for (const agentId of threadIds) {
-    const agent = agentById.get(agentId);
-    if (agent?.origin) platformOrigins.add(agent.origin);
-  }
+  const platformOrigins = new Set(rows.map(row => row.channel).filter(channel => channel === 'telegram' || channel === 'discord'));
 
   const lastSyncAt = rows[0]?.created_at ?? null;
 
