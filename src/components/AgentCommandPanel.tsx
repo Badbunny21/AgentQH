@@ -73,9 +73,9 @@ export default function AgentCommandPanel({ agentId }: { agentId: string }) {
         <TextInput
           value={text}
           onChangeText={setText}
-          placeholder="e.g. Summarize my inbox"
+          placeholder="e.g. Check the deployment status"
           placeholderTextColor={C.textMuted}
-          style={{ flex: 1, color: C.text, backgroundColor: C.c2, borderColor: C.border, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontFamily: FONTS.regular }}
+          style={{ flex: 1, minWidth: 0, color: C.text, backgroundColor: C.c2, borderColor: C.border, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontFamily: FONTS.regular }}
           onSubmitEditing={onSend}
           returnKeyType="send"
         />
@@ -111,4 +111,4 @@ export default function AgentCommandPanel({ agentId }: { agentId: string }) {
       })}
     </View>
   );
-}
+                  }

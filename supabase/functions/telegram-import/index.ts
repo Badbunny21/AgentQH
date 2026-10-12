@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       bio,
       emblem: style.emblem,
       grad_key: style.gradKey,
-      status: 'online',
+      status: 'offline',
       activity: `Imported · @${botUsername}`,
     })
     .select('id')

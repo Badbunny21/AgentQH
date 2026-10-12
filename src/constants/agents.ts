@@ -25,11 +25,5 @@ export interface Agent {
   importedAt: string;
   bio: string;
   avatarUrl: string | null;
-  stats: {
-    convos: number;
-    accuracy: number;
-    hours: number;
-  };
   memory: string[];
 }
-

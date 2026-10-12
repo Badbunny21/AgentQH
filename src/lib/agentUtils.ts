@@ -55,12 +55,11 @@ export function rowToAgent(row: AgentRow): Agent {
     emblem: row.emblem as EmblemKey,
     gradKey: row.grad_key as GradKey,
     status: row.status as AgentStatus,
-    activity: row.activity || 'Ready when you are',
+    activity: row.activity || 'No activity reported',
     origin: row.origin,
     importedAt: formatImportedAt(row.created_at),
     bio: row.bio,
     avatarUrl: row.avatar_url ?? null,
-    stats: { convos: 0, accuracy: 0, hours: 0 },
     memory: [],
   };
 }

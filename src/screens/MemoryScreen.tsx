@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { C, FONTS } from '../constants/theme';
-import { MEMORY_CATEGORIES } from '../constants/data';
+import { MEMORY_CATEGORIES } from '../constants/memoryCategories';
 import { useAuth } from '../contexts/AuthContext';
 import { useAgents } from '../contexts/AgentsContext';
 import { fetchAllMemories, Memory } from '../lib/memoriesApi';

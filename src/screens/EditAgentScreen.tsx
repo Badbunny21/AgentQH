@@ -184,7 +184,7 @@ export default function EditAgentScreen({ navigation, route }: Props) {
         </View>
 
         <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: C.textDim, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Name</Text>
-        <TextInput value={name} onChangeText={setName} placeholder="Maya" placeholderTextColor={C.textMuted} style={{ ...inputStyle, marginBottom: 16 }} />
+        <TextInput value={name} onChangeText={setName} placeholder="Agent name" placeholderTextColor={C.textMuted} style={{ ...inputStyle, marginBottom: 16 }} />
 
         <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: C.textDim, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Role</Text>
         <TextInput value={role} onChangeText={setRole} placeholder="Research analyst" placeholderTextColor={C.textMuted} style={{ ...inputStyle, marginBottom: 16 }} />
@@ -222,4 +222,4 @@ export default function EditAgentScreen({ navigation, route }: Props) {
       )}
     </View>
   );
-    }
+}
