@@ -241,6 +241,10 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
           </Text>
         </View>
 
+        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
+          <SecondaryButton onPress={() => navigation.navigate('AgentChat', { agentId: agent.id })}>Open conversation</SecondaryButton>
+        </View>
+
         {/* Stats — live from messages & tasks */}
         <View style={{ marginHorizontal: 20, marginTop: 20, padding: 16, paddingHorizontal: 18, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, flexDirection: 'row' }}>
           <StatBlock value={stats?.messagesTotal ?? '-'} label="Messages" />
