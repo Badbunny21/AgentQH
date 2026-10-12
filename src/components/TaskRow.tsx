@@ -3,12 +3,14 @@ import { View, Text, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Task } from '../contexts/TasksContext';
 import { useAgents } from '../contexts/AgentsContext';
-import { C, FONTS } from '../constants/theme';
+import { taskBoardLabel } from '../lib/taskBoardStatus';
+import { C, FONTS, GRAD_KEYS } from '../constants/theme';
 import AgentAvatar from './AgentAvatar';
 import Icon from './Icon';
 
 interface TaskRowProps {
   task: Task;
+  board?: boolean;
   onToggle?: (id: string) => void;
   onPress?: (task: Task) => void;
 }
@@ -20,10 +22,30 @@ function statusBadge(status: string, done: boolean, hasResult: boolean): { label
   return null;
 }
 
-export default function TaskRow({ task, onToggle, onPress }: TaskRowProps) {
+export default function TaskRow({ task, board = false, onToggle, onPress }: TaskRowProps) {
   const { agents } = useAgents();
   const agent = task.agentId ? agents.find(a => a.id === task.agentId) : undefined;
   const badge = statusBadge(task.status, task.done, !!task.result);
+
+  if (board) {
+    const color = agent ? GRAD_KEYS[agent.gradKey]?.[0] || C.a : C.textDim;
+    const label = taskBoardLabel(task);
+    const badgeColor = label === 'Error' ? C.busy : label === 'Review' ? C.b : C.a;
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, backgroundColor: C.c1, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 18 }}>
+        <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: task.done }} accessibilityLabel={`Mark ${task.title} ${task.done ? 'open' : 'done'}`} onPress={() => onToggle?.(task.id)} hitSlop={8}>
+          <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: task.done ? 0 : 1.5, borderColor: C.borderStrong, backgroundColor: task.done ? C.a : 'transparent' }} />
+        </Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Open task: ${task.title}`} onPress={() => onPress?.(task)} style={{ flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text numberOfLines={2} style={{ fontFamily: FONTS.medium, fontSize: 14, lineHeight: 19, color: task.done ? C.textDim : C.text, textDecorationLine: task.done ? 'line-through' : 'none' }}>{task.title}</Text>
+            <Text numberOfLines={1} style={{ fontFamily: FONTS.medium, fontSize: 11, letterSpacing: 0.8, textTransform: 'uppercase', color, marginTop: 4 }}>{agent?.name || 'Unassigned'}</Text>
+          </View>
+          {label && <View style={{ borderWidth: 1, borderColor: badgeColor, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 }}><Text style={{ fontFamily: FONTS.semibold, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.6, color: badgeColor }}>{label}</Text></View>}
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View
