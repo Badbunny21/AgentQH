@@ -121,7 +121,7 @@ export default function CreateHandoffSheet({ visible, onClose, onCreated }: Crea
     const taskResult = await addTask(taskTitle, toAgentId, runForReceiver);
     if (taskResult.error && !taskResult.taskId) {
       setLoading(false);
-      if (taskResult.limitReached) Alert.alert('Monthly limit reached', taskResult.error);
+      if (taskResult.limitReached) Alert.alert('Could not run task', taskResult.error);
       else setError(taskResult.error);
       return;
     }
