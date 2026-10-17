@@ -51,7 +51,7 @@ Owner data lives in profiles, agents, tasks, messages, memories, activities, han
 
 Review before production:
 
-- **Owner binding:** command INSERT RLS checks `user_id`, not whether `agent_id` belongs to that user. The create handler checks ownership; direct-table access needs equivalent protection and a two-owner test.
+- **Owner binding:** command INSERT RLS now also requires `agent_id` to belong to the caller (migration `20261016000000_agent_commands_insert_ownership.sql`), matching the create handler, which has a two-owner emulator test. Confirm the policy on the target project after applying the migration.
 - **Cancel fields:** UPDATE RLS requires final status `cancelled`, but does not restrict changes to status/timestamp. Policy comments overstate enforcement. Check column grants and allowed transitions.
 - **Secrets/auth:** `restDb.ts` uses service-role access. Poll/report disable gateway JWT verification and rely on handler agent-key auth. Review other webhook verification, connection secret visibility, key rotation, rate limits and SECURITY DEFINER RPCs.
 - **Recovery:** no demonstrated lease/reclaim path for a crash after claim. Cancellation only updates AgentHQ state; implement cooperative runtime stop and confirmation.
@@ -77,4 +77,4 @@ Declare the pre-event baseline. The [event page](https://la-ai-hackathon-2026.de
 
 ## Verification baseline
 
-October 14 local checks on `48d1016`: clean root/website installs, root typecheck, 26/26 tests, Expo web export and website production build pass. Website audit 0; root 22 (15 high, 7 moderate, no critical), including `braces`, `node-forge` and `decode-uri-component` chains. Keep Expo SDK 57; no downgrade. This is not a fresh production audit or native-phone certification.
+October 14 local checks on `48d1016`: clean root/website installs, root typecheck, 26/26 tests, Expo web export and website production build pass. Website audit 0; root 22 (15 high, 7 moderate, no critical), including `braces`, `node-forge` and `decode-uri-component` chains. Keep Expo SDK 57; no downgrade. This is not a fresh production audit or native-phone certification. October 16 re-check on the demo-readiness branch: root typecheck, 27/27 tests (adds a two-owner protocol test), Expo web export and website production build pass.
