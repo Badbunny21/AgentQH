@@ -23,6 +23,7 @@ import HandoffCard from '../components/HandoffCard';
 import Icon from '../components/Icon';
 import { GhostChip } from '../components/Buttons';
 import { countNeedsAttention, rosterStatusLabel } from '../lib/homeSummary';
+import { fetchAttentionFlags, AttentionFlag } from '../lib/commandsApi';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList> & {
@@ -39,13 +40,13 @@ function StatBlock({ value, label }: { value: string | number; label: string }) 
   );
 }
 
-function AgentCard({ agent, onPress }: { agent: Agent; onPress: () => void }) {
+function AgentCard({ agent, attention, onPress }: { agent: Agent; attention?: AttentionFlag; onPress: () => void }) {
   // Preserve the stored roster state. Online is not evidence of execution.
   const statusLabel = rosterStatusLabel(agent.status);
   const color = GRAD_KEYS[agent.gradKey]?.[0] || C.a;
   const statusColor = agent.status === 'away' ? C.away : agent.status === 'offline' ? C.offline : color;
   return (
-    <TouchableOpacity onPress={onPress} accessibilityRole="button" accessibilityLabel={`${agent.name}, ${statusLabel}. Open agent`} activeOpacity={0.8}
+    <TouchableOpacity onPress={onPress} accessibilityRole="button" accessibilityLabel={`${agent.name}, ${statusLabel}.${attention === 'failed' ? ' Needs attention: a command failed.' : attention === 'stale' ? ' Not responding for over 10 minutes.' : ''} Open agent`} activeOpacity={0.8}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.c1, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 18, padding: 14 }}>
       <View style={{ width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: color, backgroundColor: `${color}15`, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ fontFamily: FONTS.semibold, fontSize: 21, color }}>{Array.from(agent.name.trim())[0]?.toUpperCase() || '?'}</Text>
@@ -53,6 +54,12 @@ function AgentCard({ agent, onPress }: { agent: Agent; onPress: () => void }) {
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text numberOfLines={1} style={{ flex: 1, fontFamily: FONTS.semibold, fontSize: 17, color: C.text }}>{agent.name}</Text>
+          {attention && (
+            <View
+              accessibilityLabel={attention === 'failed' ? 'Needs attention' : 'Not responding'}
+              style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: attention === 'failed' ? C.busy : C.away }}
+            />
+          )}
           <View style={{ borderColor: statusColor, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 }}>
             <Text style={{ fontFamily: FONTS.semibold, fontSize: 9, letterSpacing: 1, color: statusColor, textTransform: 'uppercase' }}>{statusLabel}</Text>
           </View>
@@ -78,12 +85,14 @@ export default function DashboardScreen({ navigation }: Props) {
   const [showAddTask, setShowAddTask] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [handoffs, setHandoffs] = useState<Handoff[]>([]);
+  const [attention, setAttention] = useState<Record<string, AttentionFlag>>({});
 
   useFocusEffect(
     useCallback(() => {
       refresh();
       if (session?.user.id) {
         fetchHandoffs(session.user.id).then(setHandoffs);
+        fetchAttentionFlags(session.user.id).then(setAttention);
       }
     }, [refresh, session?.user.id])
   );
@@ -223,6 +232,7 @@ export default function DashboardScreen({ navigation }: Props) {
               <View key={agent.id}>
                 <AgentCard
                   agent={agent}
+                  attention={attention[agent.id]}
                   onPress={() => navigation.navigate('AgentProfile', { agentId: agent.id })}
                 />
               </View>
@@ -308,4 +318,4 @@ export default function DashboardScreen({ navigation }: Props) {
       />
     </View>
   );
-          }
+        }
