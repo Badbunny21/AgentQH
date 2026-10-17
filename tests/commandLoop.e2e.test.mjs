@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { sha256Hex, generateAgentKey } from '../supabase/functions/_shared/commandProtocol.ts';
 
 const USER = 'user-1';
+const USER2 = 'user-2';
 const db = { agents: [], agent_commands: [], agent_reports: [] };
 const handlers = {};
 
@@ -27,8 +28,9 @@ function match(row, filters) {
 globalThis.fetch = async (url, init = {}) => {
   const u = new URL(url);
   if (u.pathname === '/auth/v1/user') {
-    return init.headers.Authorization === 'Bearer user-jwt'
-      ? new Response(JSON.stringify({ id: USER })) : new Response('{}', { status: 401 });
+    if (init.headers.Authorization === 'Bearer user-jwt') return new Response(JSON.stringify({ id: USER }));
+    if (init.headers.Authorization === 'Bearer user2-jwt') return new Response(JSON.stringify({ id: USER2 }));
+    return new Response('{}', { status: 401 });
   }
   const table = u.pathname.replace('/rest/v1/', '');
   const filters = [...u.searchParams].filter(([k]) => !['select', 'order', 'limit'].includes(k));
@@ -136,4 +138,31 @@ test('stop signal and failure surface visibly; other users cannot command an age
 
   const intruder = await json(await call('agent-commands-create', { agentId, command: 'x' }, { Authorization: 'Bearer nope' }));
   assert.equal(intruder.status, 401);
+});
+
+test('two-owner isolation: a different owner cannot command your agent', async () => {
+  const agentId = randomUUID();
+  db.agents.push({ id: agentId, user_id: USER, name: 'Mine', api_key_hash: null });
+  const before = db.agent_commands.length;
+  const user2 = { Authorization: 'Bearer user2-jwt' };
+
+  // user-2 is signed in but does not own the agent: create must refuse.
+  const intruder = await json(await call('agent-commands-create', { agentId, command: 'Run this' }, user2));
+  assert.equal(intruder.status, 404);
+  assert.equal(db.agent_commands.length, before);
+
+  // user-2 also cannot issue a key for it.
+  const keyAttempt = await json(await call('agent-key-issue', { agentId }, user2));
+  assert.equal(keyAttempt.status, 404);
+
+  // Positive control: user-2 commands their own agent end to end.
+  const ownAgent = randomUUID();
+  db.agents.push({ id: ownAgent, user_id: USER2, name: 'Theirs', api_key_hash: null });
+  const issued = await json(await call('agent-key-issue', { agentId: ownAgent }, user2));
+  assert.match(issued.apiKey, /^ahq_[0-9a-f]{48}$/);
+  const created = await json(await call('agent-commands-create', { agentId: ownAgent, command: 'Own job' }, user2));
+  assert.equal(created.status, 201);
+  const poll = await json(await call('agent-commands-poll', {}, { 'x-agent-key': issued.apiKey }));
+  assert.equal(poll.commands.length, 1);
+  assert.equal(poll.commands[0].command, 'Own job');
 });

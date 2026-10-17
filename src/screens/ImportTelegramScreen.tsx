@@ -294,6 +294,11 @@ export default function ImportTelegramScreen({ navigation, route }: Props) {
               <Row label="Chat messages" value={String(conversationPreview.length)} />
               <Row label="Live sync" value="Enabled" />
             </View>
+            <View style={{ backgroundColor: 'rgba(251,191,36,0.08)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.3)', borderRadius: 14, padding: 16, marginTop: 16 }}>
+              <Text style={{ fontFamily: FONTS.medium, fontSize: 13, color: C.away, lineHeight: 19 }}>
+                Importing points this bot's webhook at AgentHQ. If another app or runtime already uses this bot, it will stop receiving messages there.
+              </Text>
+            </View>
           </>
         )}
 

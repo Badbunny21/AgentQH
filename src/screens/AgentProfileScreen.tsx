@@ -27,6 +27,7 @@ import Icon from '../components/Icon';
 import { PrimaryButton, SecondaryButton } from '../components/Buttons';
 import AddTaskSheet from '../components/AddTaskSheet';
 import AgentCommandPanel from '../components/AgentCommandPanel';
+import { issueAgentKey } from '../lib/commandsApi';
 import TaskRow from '../components/TaskRow';
 import TaskDetailSheet from '../components/TaskDetailSheet';
 import { useTasks, Task } from '../contexts/TasksContext';
@@ -130,6 +131,9 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
   const [showAddMemory, setShowAddMemory] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [stats, setStats] = useState<AgentStats | null>(null);
+  const [issuedKey, setIssuedKey] = useState<string | null>(null);
+  const [issuingKey, setIssuingKey] = useState(false);
+  const [keyError, setKeyError] = useState<string | null>(null);
 
   const agentOpenTasks = tasks.filter(t => t.agentId === agentId && !t.done);
   const agentDoneTasks = tasks.filter(t => t.agentId === agentId && t.done).slice(0, 5);
@@ -159,6 +163,19 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
       setMemories(prev => [...prev, result.memory!]);
     }
     return { error: result.error };
+  };
+
+  const onIssueKey = async () => {
+    if (issuingKey) return;
+    setIssuingKey(true);
+    setKeyError(null);
+    const res = await issueAgentKey(agentId);
+    setIssuingKey(false);
+    if (res.error || !res.apiKey) {
+      setKeyError(res.error ?? 'Could not issue a key. Try again.');
+      return;
+    }
+    setIssuedKey(res.apiKey);
   };
 
   if (!agent) {
@@ -252,6 +269,35 @@ export default function AgentProfileScreen({ navigation, route }: Props) {
           <StatBlock value={stats?.tasksTotal ?? '-'} label="Tasks" />
           <View style={{ width: 1, backgroundColor: C.border, marginHorizontal: 2 }} />
           <StatBlock value={stats?.tasksCompleted ?? '-'} label="Done" />
+        </View>
+
+        {/* Runtime key: lets your own agent prove it is yours when it polls and reports */}
+        <View style={{ paddingHorizontal: 20, marginTop: 28 }}>
+          <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textDim, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12 }}>
+            Connect your runtime
+          </Text>
+          <Text style={{ color: C.textDim, fontFamily: FONTS.regular, fontSize: 13, lineHeight: 19, marginBottom: 12 }}>
+            Your agent uses this API key to pick up jobs and report back. Issuing a new key replaces the old one.
+          </Text>
+          {keyError && (
+            <Text style={{ color: C.busy, fontFamily: FONTS.regular, fontSize: 12, marginBottom: 8 }}>{keyError}</Text>
+          )}
+          {issuedKey && (
+            <View style={{ backgroundColor: C.c1, borderColor: C.border, borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 12 }}>
+              <Text style={{ color: C.away, fontFamily: FONTS.medium, fontSize: 12, marginBottom: 8 }}>
+                Shown once - copy it now. AgentHQ stores only a hash.
+              </Text>
+              <Text selectable style={{ color: C.text, fontFamily: FONTS.mono, fontSize: 13, lineHeight: 18 }}>
+                {issuedKey}
+              </Text>
+              <Text style={{ color: C.textMuted, fontFamily: FONTS.regular, fontSize: 11, marginTop: 8 }}>
+                Press and hold the key to copy it.
+              </Text>
+            </View>
+          )}
+          <SecondaryButton onPress={onIssueKey} disabled={issuingKey}>
+            {issuingKey ? 'Issuing…' : issuedKey ? 'Issue new key' : 'Issue agent key'}
+          </SecondaryButton>
         </View>
 
         <View style={{ paddingHorizontal: 20 }}>
