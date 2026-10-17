@@ -86,6 +86,47 @@ export async function fetchAttentionFlags(userId: string): Promise<Record<string
   return flags;
 }
 
+export interface AgentPulse {
+  /** Latest human-readable thing the agent reported, e.g. "Analyzing results". */
+  latestActivity: string | null;
+  /** Jobs the agent is still working on. */
+  running: number;
+  /** A job failed or is waiting for approval. */
+  needsHelp: boolean;
+  /** The help it needs: 'approval' (needs_review) or 'failed'. */
+  helpKind: 'approval' | 'failed' | null;
+}
+
+/**
+ * Live pulse per agent for the dashboard counters and one-line activity.
+ * Only real pushed data: open/failed/needs_review commands and the latest
+ * non-heartbeat report message. Missing from the map = quiet agent.
+ */
+export async function fetchAgentPulses(userId: string): Promise<Record<string, AgentPulse>> {
+  const pulses: Record<string, AgentPulse> = {};
+  const [cmds, reports] = await Promise.all([
+    supabase.from('agent_commands').select('agent_id, status').eq('user_id', userId),
+    supabase.from('agent_reports').select('agent_id, message, created_at')
+      .eq('user_id', userId).neq('kind', 'heartbeat')
+      .order('created_at', { ascending: false }).limit(100),
+  ]);
+  if (cmds.error) console.error('[pulse] commands:', cmds.error.message);
+  if (reports.error) console.error('[pulse] reports:', reports.error.message);
+  const ensure = (id: string): AgentPulse =>
+    (pulses[id] ??= { latestActivity: null, running: 0, needsHelp: false, helpKind: null });
+  for (const c of (cmds.data ?? []) as { agent_id: string; status: string }[]) {
+    const p = ensure(c.agent_id);
+    if (OPEN_STATUSES.includes(c.status as CommandStatus)) p.running += 1;
+    if (c.status === 'failed') { p.needsHelp = true; p.helpKind = 'failed'; }
+    if (c.status === 'needs_review' && p.helpKind !== 'failed') { p.needsHelp = true; p.helpKind = 'approval'; }
+  }
+  for (const r of (reports.data ?? []) as { agent_id: string; message: string | null }[]) {
+    const p = ensure(r.agent_id);
+    if (p.latestActivity === null && r.message) p.latestActivity = r.message;
+  }
+  return pulses;
+}
+
 export async function fetchCommands(agentId: string, limit = 10): Promise<AgentCommand[]> {
   const { data, error } = await supabase
     .from('agent_commands').select('*').eq('agent_id', agentId)
