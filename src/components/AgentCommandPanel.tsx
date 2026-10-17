@@ -17,6 +17,45 @@ function statusColor(s: AgentCommand['status']): string {
   return C.b;
 }
 
+const KIND_LABEL: Record<AgentReport['kind'], string> = {
+  ack: 'Task accepted',
+  progress: 'Working',
+  result: 'Finished',
+  error: 'Hit a problem',
+  stop: 'Stopped',
+  heartbeat: 'Checked in',
+};
+
+type TimelineRow = { id: string; label: string; at: string };
+
+/** One timeline row: green check when done, spinner while it is the live step, ! on failure, ? when waiting for approval. */
+function TimelineRowView({ row, state }: { row: TimelineRow; state: 'done' | 'live' | 'failed' | 'approval' }) {
+  const time = new Date(row.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 }}>
+      {state === 'live' ? (
+        <ActivityIndicator size="small" color={C.b} style={{ width: 18 }} />
+      ) : state === 'failed' ? (
+        <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: C.busy, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: C.busy, fontSize: 11, fontFamily: FONTS.semibold }}>!</Text>
+        </View>
+      ) : state === 'approval' ? (
+        <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: C.away, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: C.away, fontSize: 11, fontFamily: FONTS.semibold }}>?</Text>
+        </View>
+      ) : (
+        <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(163,230,53,0.12)', borderWidth: 1.5, borderColor: C.online, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: C.online, fontSize: 10, fontFamily: FONTS.semibold }}>OK</Text>
+        </View>
+      )}
+      <Text style={{ flex: 1, color: state === 'live' ? C.text : C.textDim, fontFamily: state === 'live' ? FONTS.medium : FONTS.regular, fontSize: 13 }}>
+        {row.label}
+      </Text>
+      <Text style={{ color: C.textMuted, fontFamily: FONTS.mono, fontSize: 10 }}>{time}</Text>
+    </View>
+  );
+}
+
 /** Give your agent a job, watch it report back, stop it if needed. */
 export default function AgentCommandPanel({ agentId }: { agentId: string }) {
   const [stale, setStale] = useState(false);
@@ -62,7 +101,7 @@ export default function AgentCommandPanel({ agentId }: { agentId: string }) {
   return (
     <View style={{ marginTop: 28 }}>
       <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textDim, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 12 }}>
-        Give it a job
+        Task activity
       </Text>
       {stale && (
         <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.away, marginBottom: 8 }}>
@@ -85,14 +124,29 @@ export default function AgentCommandPanel({ agentId }: { agentId: string }) {
       </View>
       {error && <Text style={{ color: C.busy, marginTop: 8, fontFamily: FONTS.regular, fontSize: 12 }}>{error}</Text>}
 
+      {commands.length === 0 && (
+        <Text style={{ color: C.textMuted, fontFamily: FONTS.regular, fontSize: 13, marginTop: 12 }}>
+          No updates yet.
+        </Text>
+      )}
       {commands.map(c => {
         const open = OPEN_STATUSES.includes(c.status);
+        const rows: TimelineRow[] = [
+          { id: `cmd-${c.id}`, label: `Task sent: ${c.command}`, at: c.createdAt },
+          ...(reports[c.id] ?? [])
+            .filter(r => r.kind !== 'heartbeat')
+            .map(r => ({ id: r.id, label: r.message || KIND_LABEL[r.kind], at: r.createdAt })),
+        ];
+        const lastState =
+          c.status === 'failed' ? 'failed'
+          : c.status === 'needs_review' ? 'approval'
+          : open ? 'live'
+          : 'done';
         return (
-          <View key={c.id} style={{ marginTop: 12, backgroundColor: C.c1, borderColor: C.border, borderWidth: 1, borderRadius: 14, padding: 14 }}>
-            <Text style={{ color: C.text, fontFamily: FONTS.semibold, fontSize: 14 }}>{c.command}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+          <View key={c.id} style={{ marginTop: 12, backgroundColor: C.c1, borderColor: C.borderStrong, borderWidth: 1, borderRadius: 14, padding: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{ color: statusColor(c.status), fontFamily: FONTS.mono, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
-                {STATUS_LABEL[c.status]}{c.progress != null && open ? ` · ${c.progress}%` : ''}
+                {c.status === 'needs_review' ? 'Waiting for approval' : STATUS_LABEL[c.status]}{c.progress != null && open ? ` · ${c.progress}%` : ''}
               </Text>
               {open && (
                 <TouchableOpacity onPress={() => onStop(c.id)} style={{ marginLeft: 'auto' }}>
@@ -100,15 +154,13 @@ export default function AgentCommandPanel({ agentId }: { agentId: string }) {
                 </TouchableOpacity>
               )}
             </View>
-            {c.result && <Text style={{ color: C.textDim, fontFamily: FONTS.regular, marginTop: 8 }}>{c.result}</Text>}
-            {(reports[c.id] ?? []).filter(r => r.kind !== 'heartbeat').map(r => (
-              <Text key={r.id} style={{ color: C.textMuted, fontFamily: FONTS.regular, fontSize: 12, marginTop: 4 }}>
-                {new Date(r.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} · {r.kind}{r.message ? `: ${r.message}` : ''}
-              </Text>
+            {rows.map((row, i) => (
+              <TimelineRowView key={row.id} row={row} state={i === rows.length - 1 ? lastState : 'done'} />
             ))}
+            {c.result && <Text style={{ color: C.textDim, fontFamily: FONTS.regular, marginTop: 10 }}>{c.result}</Text>}
           </View>
         );
       })}
     </View>
   );
-                  }
+}

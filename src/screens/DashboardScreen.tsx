@@ -23,7 +23,7 @@ import HandoffCard from '../components/HandoffCard';
 import Icon from '../components/Icon';
 import { GhostChip } from '../components/Buttons';
 import { countNeedsAttention, rosterStatusLabel } from '../lib/homeSummary';
-import { fetchAttentionFlags, AttentionFlag } from '../lib/commandsApi';
+import { fetchAttentionFlags, fetchAgentPulses, AttentionFlag, AgentPulse } from '../lib/commandsApi';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList> & {
@@ -40,7 +40,7 @@ function StatBlock({ value, label }: { value: string | number; label: string }) 
   );
 }
 
-function AgentCard({ agent, attention, onPress }: { agent: Agent; attention?: AttentionFlag; onPress: () => void }) {
+function AgentCard({ agent, attention, pulse, onPress }: { agent: Agent; attention?: AttentionFlag; pulse?: AgentPulse; onPress: () => void }) {
   // Preserve the stored roster state. Online is not evidence of execution.
   const statusLabel = rosterStatusLabel(agent.status);
   const color = GRAD_KEYS[agent.gradKey]?.[0] || C.a;
@@ -64,7 +64,11 @@ function AgentCard({ agent, attention, onPress }: { agent: Agent; attention?: At
             <Text style={{ fontFamily: FONTS.semibold, fontSize: 9, letterSpacing: 1, color: statusColor, textTransform: 'uppercase' }}>{statusLabel}</Text>
           </View>
         </View>
-        <Text numberOfLines={2} style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, lineHeight: 18, marginTop: 4 }}>{agent.activity || agent.role}</Text>
+        <Text numberOfLines={2} style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, lineHeight: 18, marginTop: 4 }}>
+          {pulse?.helpKind === 'approval' ? 'Waiting for approval'
+            : pulse?.helpKind === 'failed' ? 'Needs help - a job failed'
+            : pulse?.latestActivity || agent.activity || agent.role}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -86,6 +90,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [handoffs, setHandoffs] = useState<Handoff[]>([]);
   const [attention, setAttention] = useState<Record<string, AttentionFlag>>({});
+  const [pulses, setPulses] = useState<Record<string, AgentPulse>>({});
 
   useFocusEffect(
     useCallback(() => {
@@ -93,6 +98,12 @@ export default function DashboardScreen({ navigation }: Props) {
       if (session?.user.id) {
         fetchHandoffs(session.user.id).then(setHandoffs);
         fetchAttentionFlags(session.user.id).then(setAttention);
+        fetchAgentPulses(session.user.id).then(setPulses);
+        const t = setInterval(() => {
+          fetchAgentPulses(session.user.id).then(setPulses);
+          fetchAttentionFlags(session.user.id).then(setAttention);
+        }, 15000);
+        return () => clearInterval(t);
       }
     }, [refresh, session?.user.id])
   );
@@ -183,8 +194,8 @@ export default function DashboardScreen({ navigation }: Props) {
         {/* Stats */}
         <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', gap: 8 }}>
           <StatBlock value={visibleAgents.length} label="Agents" />
-          <StatBlock value={visibleTasks.length} label="Tasks" />
-          <StatBlock value={needsYouCount} label="Needs you" />
+          <StatBlock value={visibleAgents.filter(a => (pulses[a.id]?.running ?? 0) > 0).length} label="Running" />
+          <StatBlock value={visibleAgents.filter(a => pulses[a.id]?.needsHelp).length} label="Needs help" />
         </View>
 
         {activeWorkspace && (
@@ -233,6 +244,7 @@ export default function DashboardScreen({ navigation }: Props) {
                 <AgentCard
                   agent={agent}
                   attention={attention[agent.id]}
+                  pulse={pulses[agent.id]}
                   onPress={() => navigation.navigate('AgentProfile', { agentId: agent.id })}
                 />
               </View>
