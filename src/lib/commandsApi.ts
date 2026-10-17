@@ -61,6 +61,31 @@ export async function sendCommand(agentId: string, command: string): Promise<{ c
   return { command: rowToCommand(data.command), error: null };
 }
 
+
+export type AttentionFlag = 'failed' | 'stale';
+
+/**
+ * Per-agent attention flags for the dashboard dot.
+ * 'failed' = the agent has a failed command. 'stale' = no heartbeat for 10+ minutes.
+ * 'failed' wins when both are true. Missing from the map = nothing needs attention.
+ */
+export async function fetchAttentionFlags(userId: string): Promise<Record<string, AttentionFlag>> {
+  const flags: Record<string, AttentionFlag> = {};
+  const [cmds, agents] = await Promise.all([
+    supabase.from('agent_commands').select('agent_id').eq('user_id', userId).eq('status', 'failed'),
+    supabase.from('agents').select('id, last_heartbeat_at').eq('user_id', userId),
+  ]);
+  if (cmds.error) console.error('[attention] commands:', cmds.error.message);
+  if (agents.error) console.error('[attention] agents:', agents.error.message);
+  for (const a of (agents.data ?? []) as { id: string; last_heartbeat_at: string | null }[]) {
+    if (isAgentStale(a.last_heartbeat_at)) flags[a.id] = 'stale';
+  }
+  for (const c of (cmds.data ?? []) as { agent_id: string }[]) {
+    flags[c.agent_id] = 'failed';
+  }
+  return flags;
+}
+
 export async function fetchCommands(agentId: string, limit = 10): Promise<AgentCommand[]> {
   const { data, error } = await supabase
     .from('agent_commands').select('*').eq('agent_id', agentId)
