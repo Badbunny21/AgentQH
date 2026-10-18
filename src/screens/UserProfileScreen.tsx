@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../contexts/AuthContext';
-import { C, FONTS } from '../constants/theme';
+import { C, FONTS, GRAD } from '../constants/theme';
 import { useAgents } from '../contexts/AgentsContext';
 import { useTasks } from '../contexts/TasksContext';
 import { fetchUserDashboardStats } from '../lib/userStatsApi';
@@ -215,7 +215,7 @@ export default function UserProfileScreen({ navigation }: Props) {
           </View>
         </TouchableOpacity>
 
-        <LinearGradient colors={['#a3e635', '#22d3ee', '#e879f9']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ marginHorizontal: 16, marginBottom: 24, padding: 18, borderRadius: C.radius }}>
+        <LinearGradient colors={[...GRAD]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ marginHorizontal: 16, marginBottom: 24, padding: 18, borderRadius: C.radius }}>
           <Text style={{ fontFamily: FONTS.mono, fontSize: 10.5, color: 'rgba(10,10,15,0.7)', letterSpacing: 1.5 }}>ROSTER SIZE</Text>
           <Text style={{ fontFamily: FONTS.semibold, fontSize: 24, color: '#0a0a0f', marginTop: 8 }}>{agentCount}</Text>
           <Text style={{ fontFamily: FONTS.medium, fontSize: 13, color: 'rgba(10,10,15,0.85)', marginTop: 8 }}>All app features are available. No subscription required.</Text>

@@ -12,7 +12,7 @@ import { fetchThreadPreviews, ThreadPreview } from '../lib/messagesApi';
 import { syncAllDiscordAgents } from '../lib/discordImportApi';
 import AgentAvatar from '../components/AgentAvatar';
 import Icon from '../components/Icon';
-import { GhostChip } from '../components/Buttons';
+import { GhostChip, PrimaryButton } from '../components/Buttons';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList>;
@@ -75,6 +75,27 @@ export default function InboxScreen({ navigation }: Props) {
           </Text>
         </View>
 
+        {!loading && items.length === 0 && (
+          <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                backgroundColor: 'rgba(163,230,53,0.12)',
+                borderWidth: 1,
+                borderColor: 'rgba(163,230,53,0.35)',
+                borderRadius: 999,
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+              }}
+            >
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.a }} />
+              <Text style={{ fontFamily: FONTS.medium, fontSize: 12, color: C.a }}>No conversations</Text>
+            </View>
+          </View>
+        )}
+
         {activeWorkspace && (
           <View style={{ paddingHorizontal: 20, paddingBottom: 14 }}>
             <TouchableOpacity
@@ -93,12 +114,14 @@ export default function InboxScreen({ navigation }: Props) {
         {loading ? (
           <ActivityIndicator color={C.a} style={{ marginTop: 40 }} />
         ) : agents.length === 0 ? (
-          <View style={{ marginHorizontal: 16, padding: 28, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, alignItems: 'center' }}>
-            <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text, marginBottom: 8 }}>No conversations yet</Text>
-            <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, textAlign: 'center', lineHeight: 20, marginBottom: 16 }}>
-              Connect an agent to see its activity here.
-            </Text>
-            <GhostChip icon="plus" onPress={() => navigation.navigate('AddAgent')}>Add agent</GhostChip>
+          <View style={{ marginHorizontal: 16, padding: 20, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(34,211,238,0.14)', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="mail" size={17} color={C.b} />
+              </View>
+              <Text style={{ flex: 1, fontFamily: FONTS.medium, fontSize: 15, color: C.text, letterSpacing: -0.2 }}>Connect an agent. Threads show up here.</Text>
+            </View>
+            <PrimaryButton icon="plus" iconPosition="start" onPress={() => navigation.navigate('AddAgent')} style={{ alignSelf: 'stretch' }}>Add agent</PrimaryButton>
           </View>
         ) : items.length === 0 ? (
           <View style={{ marginHorizontal: 16, padding: 28, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, alignItems: 'center' }}>

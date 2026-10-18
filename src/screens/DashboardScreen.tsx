@@ -21,7 +21,7 @@ import AddTaskSheet from '../components/AddTaskSheet';
 import TaskDetailSheet from '../components/TaskDetailSheet';
 import HandoffCard from '../components/HandoffCard';
 import Icon from '../components/Icon';
-import { GhostChip } from '../components/Buttons';
+import { GhostChip, PrimaryButton } from '../components/Buttons';
 import { countNeedsAttention, rosterStatusLabel } from '../lib/homeSummary';
 import { fetchAttentionFlags, fetchAgentPulses, AttentionFlag, AgentPulse } from '../lib/commandsApi';
 
@@ -31,11 +31,14 @@ type Props = {
   };
 };
 
-function StatBlock({ value, label }: { value: string | number; label: string }) {
+function StatBlock({ value, label, icon, tint }: { value: string | number; label: string; icon: string; tint: string }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.c1, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 16, padding: 12 }}>
       <Text style={{ fontFamily: FONTS.semibold, fontSize: 26, color: C.text, lineHeight: 29 }}>{value}</Text>
       <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textDim, letterSpacing: 1, textTransform: 'uppercase', marginTop: 3 }}>{label}</Text>
+      <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: `${tint}1f`, alignItems: 'center', justifyContent: 'center', marginTop: 10 }}>
+        <Icon name={icon} size={13} color={tint} />
+      </View>
     </View>
   );
 }
@@ -149,6 +152,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   // Needs you counts actual task execution errors, never every open task.
   const needsYouCount = countNeedsAttention(visibleTasks);
+  const needsHelpAgents = visibleAgents.filter(a => pulses[a.id]?.needsHelp).length;
   const visibleHandoffs = handoffs.filter(h => filterAgentIds([h.fromAgentId, h.toAgentId]));
 
   return (
@@ -175,7 +179,7 @@ export default function DashboardScreen({ navigation }: Props) {
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity
               onPress={() => navigation.navigate('Notifications')}
-              style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}
             >
               <Icon name="bell" size={18} color={C.text} />
               {activityFeed.length > 0 && (
@@ -184,18 +188,40 @@ export default function DashboardScreen({ navigation }: Props) {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigation.navigate('AddAgent')}
-              style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}
             >
               <Icon name="plus" size={18} color={C.text} />
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* Status pill */}
+        <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              backgroundColor: needsHelpAgents > 0 ? 'rgba(248,113,113,0.12)' : 'rgba(163,230,53,0.12)',
+              borderWidth: 1,
+              borderColor: needsHelpAgents > 0 ? 'rgba(248,113,113,0.4)' : 'rgba(163,230,53,0.35)',
+              borderRadius: 999,
+              paddingHorizontal: 12,
+              paddingVertical: 5,
+            }}
+          >
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: needsHelpAgents > 0 ? C.busy : C.a }} />
+            <Text style={{ fontFamily: FONTS.medium, fontSize: 12, color: needsHelpAgents > 0 ? C.busy : C.a }}>
+              {needsHelpAgents > 0 ? `${needsHelpAgents} need${needsHelpAgents === 1 ? 's' : ''} help` : 'All quiet'}
+            </Text>
+          </View>
+        </View>
+
         {/* Stats */}
         <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', gap: 8 }}>
-          <StatBlock value={visibleAgents.length} label="Agents" />
-          <StatBlock value={visibleAgents.filter(a => (pulses[a.id]?.running ?? 0) > 0).length} label="Running" />
-          <StatBlock value={visibleAgents.filter(a => pulses[a.id]?.needsHelp).length} label="Needs help" />
+          <StatBlock value={visibleAgents.length} label="Agents" icon="user" tint={C.a} />
+          <StatBlock value={visibleAgents.filter(a => (pulses[a.id]?.running ?? 0) > 0).length} label="Running" icon="bolt" tint={C.b} />
+          <StatBlock value={needsHelpAgents} label="Needs help" icon="bell" tint={C.c} />
         </View>
 
         {activeWorkspace && (
@@ -219,16 +245,14 @@ export default function DashboardScreen({ navigation }: Props) {
             <View style={{ width: '100%', backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius, padding: 20 }}>
               {agents.length === 0 && !activeWorkspace ? (
                 <>
-                  <Text style={{ fontFamily: FONTS.mono, fontSize: 10, color: C.textMuted, letterSpacing: 1.2, marginBottom: 14 }}>ILLUSTRATION - NOT AN AGENT</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: C.c2, alignItems: 'center', justifyContent: 'center' }}><Icon name="plus" size={24} color={C.a} /></View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text }}>Your agent goes here</Text>
-                      <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, marginTop: 4 }}>Name, role and reported status</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                    <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(163,230,53,0.14)', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="plus" size={18} color={C.a} />
                     </View>
+                    <Text style={{ flex: 1, fontFamily: FONTS.medium, fontSize: 15, color: C.text, letterSpacing: -0.2 }}>Bring your first agent. It reports here.</Text>
                   </View>
-                  <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, lineHeight: 20, marginTop: 14, marginBottom: 16 }}>Import your real agent to replace this illustration. No sample agent or history is saved.</Text>
-                  <GhostChip icon="plus" onPress={() => navigation.navigate('AddAgent')}>Import your first agent</GhostChip>
+                  <PrimaryButton icon="plus" iconPosition="start" onPress={() => navigation.navigate('AddAgent')} style={{ alignSelf: 'stretch' }}>Import your first agent</PrimaryButton>
+                  <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textMuted, textAlign: 'center', marginTop: 12 }}>No sample agent or history is saved.</Text>
                 </>
               ) : (
                 <>

@@ -4,7 +4,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
-import { C, FONTS } from '../constants/theme';
+import { C, FONTS, GRAD } from '../constants/theme';
 
 const TABS = [
   { name: 'Home', icon: 'home', label: 'Home' },
@@ -54,53 +54,60 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
             }
           };
 
-          if (isActive) {
-            return (
-              <TouchableOpacity
-                key={tab.name}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: isActive }}
-                accessibilityLabel={options.tabBarAccessibilityLabel || tab.label}
-                onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
-                onPress={onPress}
-                style={{ flex: 1, borderRadius: 999, overflow: 'hidden' }}
-                activeOpacity={0.8}
+          const content = (
+            <>
+              <Icon name={tab.icon} size={17} color={isActive ? '#0a0a0a' : C.textDim} />
+              <Text
+                style={{
+                  fontFamily: isActive ? FONTS.semibold : FONTS.regular,
+                  fontSize: 10,
+                  color: isActive ? '#0a0a0a' : C.textDim,
+                  letterSpacing: -0.1,
+                  marginTop: 2,
+                }}
               >
-                <LinearGradient
-                  colors={['#a3e635', '#22d3ee', '#e879f9']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{
-                    height: 44,
-                    borderRadius: 999,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <Icon name={tab.icon} size={17} color="#0a0a0a" />
-                  <Text style={{ fontFamily: FONTS.semibold, fontSize: 13, color: '#0a0a0a', letterSpacing: -0.1 }}>
-                    {tab.label}
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            );
-          }
+                {tab.label}
+              </Text>
+            </>
+          );
 
           return (
             <TouchableOpacity
               key={tab.name}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={options.tabBarAccessibilityLabel || tab.label}
+              onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
               onPress={onPress}
-              style={{
-                flex: 1,
-                height: 44,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              activeOpacity={0.7}
+              style={{ flex: 1, borderRadius: 999, overflow: 'hidden' }}
+              activeOpacity={0.8}
             >
-              <Icon name={tab.icon} size={17} color={C.textDim} />
+              {isActive ? (
+                <LinearGradient
+                  colors={[...GRAD]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    height: 52,
+                    borderRadius: 999,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {content}
+                </LinearGradient>
+              ) : (
+                <View
+                  style={{
+                    height: 52,
+                    borderRadius: 999,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {content}
+                </View>
+              )}
             </TouchableOpacity>
           );
         })}
