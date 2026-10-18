@@ -29,7 +29,7 @@ export const C = {
   radius: 18,
 } as const;
 
-export const GRAD = ['#a3e635', '#22d3ee', '#e879f9'] as const;
+export const GRAD = ['#a3e635', '#22d3ee', '#3b82f6', '#e879f9'] as const;
 export const GRAD_START = { x: 0, y: 0 };
 export const GRAD_END = { x: 1, y: 1 };
 
