@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -24,9 +24,20 @@ export default function MigrationScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { completeOnboarding } = useAuth();
   const { agents } = useAgents();
+  const [isContinuing, setIsContinuing] = useState(false);
+  const [continueError, setContinueError] = useState<string | null>(null);
 
   const handleContinue = async () => {
-    await completeOnboarding();
+    setContinueError(null);
+    setIsContinuing(true);
+    try {
+      const result = await completeOnboarding();
+      if (result.error) setContinueError(result.error);
+    } catch (error) {
+      setContinueError(error instanceof Error ? error.message : 'Could not continue. Please try again.');
+    } finally {
+      setIsContinuing(false);
+    }
   };
 
   return (
@@ -43,6 +54,11 @@ export default function MigrationScreen({ navigation }: Props) {
           <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, letterSpacing: -0.2, lineHeight: 20 }}>
             Bring in an agent you already run on Telegram or Discord. AgentHQ shows its work and sends it commands. The agent keeps thinking where it lives.
           </Text>
+          {agents.length === 0 && (
+            <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, lineHeight: 19, marginTop: 12 }}>
+              Don’t have an agent ready? Continue with an empty roster and add one later. No sample agent data will be saved.
+            </Text>
+          )}
         </View>
 
         <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
@@ -132,8 +148,13 @@ export default function MigrationScreen({ navigation }: Props) {
       </ScrollView>
 
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: insets.bottom + 24, gap: 10 }}>
-        <PrimaryButton onPress={handleContinue} icon="arrow" disabled={agents.length === 0}>
-          {agents.length === 0 ? 'Connect an agent to continue' : 'Continue to home'}
+        {continueError && (
+          <Text accessibilityRole="alert" style={{ fontFamily: FONTS.regular, fontSize: 13, color: '#f87171', lineHeight: 19, textAlign: 'center' }}>
+            Could not continue: {continueError}
+          </Text>
+        )}
+        <PrimaryButton onPress={handleContinue} icon="arrow" disabled={isContinuing}>
+          {isContinuing ? 'Opening your workspace…' : agents.length === 0 ? 'Continue without an agent' : 'Continue to home'}
         </PrimaryButton>
       </View>
     </View>

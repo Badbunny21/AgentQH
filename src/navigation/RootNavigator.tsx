@@ -7,8 +7,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { useAuth } from '../contexts/AuthContext';
 import LoadingScreen from '../components/LoadingScreen';
-import ConfigMissingScreen from '../components/ConfigMissingScreen';
-import OnboardingScreen from '../screens/OnboardingScreen';
 import AuthScreen from '../screens/AuthScreen';
 import MigrationScreen from '../screens/MigrationScreen';
 import DashboardScreen from '../screens/DashboardScreen';
@@ -34,7 +32,8 @@ import CustomTabBar from './CustomTabBar';
 
 export type RootStackParamList = {
   Onboarding: undefined;
-  Auth: { mode: 'signin' | 'signup' };
+  Auth: { mode?: 'signin' | 'signup' } | undefined;
+  SignUp: undefined;
   Migration: undefined;
   Main: undefined;
   AgentProfile: { agentId: string };
@@ -79,11 +78,7 @@ function TabNavigator() {
 }
 
 export default function RootNavigator() {
-  const { session, profile, isLoading, isConfigured, profileError, refreshProfile, signOut } = useAuth();
-
-  if (!isConfigured) {
-    return <ConfigMissingScreen />;
-  }
+  const { session, profile, isLoading, profileError, refreshProfile, signOut } = useAuth();
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -108,8 +103,8 @@ export default function RootNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
         {!isAuthenticated ? (
           <>
-            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-            <Stack.Screen name="Auth" component={AuthScreen} />
+            <Stack.Screen name="Auth" component={AuthScreen} initialParams={{ mode: 'signin' }} />
+            <Stack.Screen name="SignUp" component={AuthScreen} />
           </>
         ) : needsOnboarding ? (
           <>

@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -250,6 +251,33 @@ export default function DashboardScreen({ navigation }: Props) {
               </View>
             ))
           )}
+        </View>
+
+        <View style={{ paddingHorizontal: 20, paddingBottom: 20 }}>
+          <View style={{ backgroundColor: C.c1, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 18, padding: 16 }}>
+            <Text style={{ fontFamily: FONTS.semibold, fontSize: 17, color: C.text }}>Connect a source</Text>
+            <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, lineHeight: 19, marginTop: 4, marginBottom: 14 }}>
+              Add tools to bring more of your work into one place.
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: C.c2, alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="mail" size={19} color={C.text} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: FONTS.medium, fontSize: 15, color: C.text }}>Gmail</Text>
+                <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, marginTop: 3 }}>Connect your Google account</Text>
+              </View>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Add Gmail source"
+                onPress={() => Alert.alert('Gmail connection not set up', 'This is a UI placeholder. Gmail sign-in requires a Google OAuth flow, which has not been implemented.')}
+                style={{ height: 36, borderRadius: 999, paddingHorizontal: 16, backgroundColor: C.c2, borderWidth: 1, borderColor: C.borderStrong, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <Icon name="plus" size={14} color={C.text} />
+                <Text style={{ fontFamily: FONTS.medium, fontSize: 13, color: C.text }}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         {/* Recent activity: historical items are not presented as today. */}

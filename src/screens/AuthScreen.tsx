@@ -19,11 +19,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { formatAuthError } from '../lib/authErrors';
 import { C, FONTS } from '../constants/theme';
 import Icon from '../components/Icon';
-import { PrimaryButton } from '../components/Buttons';
+import { PrimaryButton, SecondaryButton } from '../components/Buttons';
 
 type Props = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'Auth'>;
-  route: RouteProp<RootStackParamList, 'Auth'>;
+  navigation: NativeStackNavigationProp<RootStackParamList, 'Auth' | 'SignUp'>;
+  route: RouteProp<RootStackParamList, 'Auth' | 'SignUp'>;
 };
 
 interface InputFieldProps {
@@ -69,10 +69,9 @@ function InputField({ label, value, onChangeText, secureTextEntry, placeholder, 
   );
 }
 
-export default function AuthScreen({ route }: Props) {
+export default function AuthScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { signUp, signIn } = useAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>(route.params?.mode || 'signup');
+  const { signUp, signIn, isConfigured } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +79,7 @@ export default function AuthScreen({ route }: Props) {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const isSignUp = mode === 'signup';
+  const isSignUp = route.name === 'SignUp' || route.params?.mode === 'signup';
 
   const handleAuth = async () => {
     setError(null);
@@ -102,6 +101,7 @@ export default function AuthScreen({ route }: Props) {
       setError('Please agree to the Terms and Privacy Policy.');
       return;
     }
+    if (!isConfigured) return;
 
     setLoading(true);
     const result = isSignUp
@@ -112,7 +112,6 @@ export default function AuthScreen({ route }: Props) {
     if (result.error) {
       setError(formatAuthError(result.error));
     } else if ('needsConfirmation' in result && result.needsConfirmation) {
-      setMode('signin');
       setSuccess('Account created. Turn off "Confirm email" in Supabase for instant access, or confirm your user in Supabase → Users, then tap Sign in below.');
     }
   };
@@ -120,7 +119,7 @@ export default function AuthScreen({ route }: Props) {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.c0 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ paddingBottom: 180 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Logo + Title */}
         <View style={{ paddingTop: insets.top + 32, paddingHorizontal: 28 }}>
           <LinearGradient
@@ -134,10 +133,10 @@ export default function AuthScreen({ route }: Props) {
             </Svg>
           </LinearGradient>
           <Text style={{ fontFamily: FONTS.semibold, fontSize: 32, color: C.text, letterSpacing: -1, lineHeight: 33.6, marginBottom: 8 }}>
-            {isSignUp ? 'Build your\nroster' : 'Welcome\nback'}
+              {isSignUp ? 'Create your\naccount' : 'Welcome\nback'}
           </Text>
           <Text style={{ fontFamily: FONTS.regular, fontSize: 14, color: C.textDim, letterSpacing: -0.2 }}>
-            {isSignUp ? 'Start with the agents you already use.' : 'Your crew is waiting.'}
+              {isSignUp ? 'Start with the agents you already use.' : 'Sign in to continue to your crew.'}
           </Text>
         </View>
 
@@ -212,20 +211,23 @@ export default function AuthScreen({ route }: Props) {
 
       {/* Bottom CTA */}
       <View style={{ position: 'absolute', left: 28, right: 28, bottom: insets.bottom + 32 }}>
-        <PrimaryButton onPress={handleAuth} disabled={loading}>
+        {!isConfigured && (
+          <Text style={{ fontFamily: FONTS.regular, fontSize: 12, color: C.textDim, textAlign: 'center', lineHeight: 18, marginBottom: 12 }}>
+            Connect Supabase to enable account access.
+          </Text>
+        )}
+        <PrimaryButton onPress={handleAuth} disabled={loading || !isConfigured}>
           {loading ? (isSignUp ? 'Creating account…' : 'Signing in…') : isSignUp ? 'Create account' : 'Sign in'}
         </PrimaryButton>
-        <View style={{ alignItems: 'center', marginTop: 18 }}>
-          <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim }}>
-            {isSignUp ? 'Already on the roster? ' : 'New here? '}
-            <Text
-              style={{ fontFamily: FONTS.semibold, color: C.text }}
-              onPress={() => { setMode(isSignUp ? 'signin' : 'signup'); setError(null); setSuccess(null); }}
-            >
-              {isSignUp ? 'Sign in' : 'Sign up'}
-            </Text>
-          </Text>
-        </View>
+        <SecondaryButton
+          onPress={() => {
+            if (isSignUp) navigation.navigate('Auth');
+            else navigation.navigate('SignUp');
+          }}
+          style={{ marginTop: 12 }}
+        >
+          {isSignUp ? 'Already have an account? Sign in' : 'No account? Sign up'}
+        </SecondaryButton>
       </View>
     </KeyboardAvoidingView>
   );
