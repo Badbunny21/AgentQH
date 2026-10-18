@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
-import { createTask, dispatchTask, fetchTasks, Task, toggleTaskDone } from '../lib/tasksApi';
+import { createTask, dispatchTask, fetchTasks, markTaskReviewed, Task, toggleTaskDone } from '../lib/tasksApi';
 import { fetchActivities, logActivity, Activity } from '../lib/activitiesApi';
 import { useAgents } from './AgentsContext';
 
@@ -12,6 +12,7 @@ interface TasksContextType {
   refresh: () => Promise<void>;
   addTask: (title: string, agentId: string | null, dispatch?: boolean) => Promise<{ error: string | null; limitReached?: boolean; taskId?: string }>;
   runTask: (taskId: string) => Promise<{ error: string | null; limitReached?: boolean }>;
+  reviewTask: (taskId: string) => Promise<{ error: string | null }>;
   toggleTask: (taskId: string) => Promise<void>;
 }
 
@@ -97,9 +98,16 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
     return { error: null };
   };
 
+  const reviewTask = async (taskId: string) => {
+    if (!session?.user.id) return { error: 'Not signed in' };
+    const result = await markTaskReviewed(session.user.id, taskId);
+    await refresh();
+    return { error: result.error };
+  };
+
   const toggleTask = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
+    if (!task || task.telegramState != null) return;
     const nextDone = !task.done;
     setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, done: nextDone, status: nextDone ? 'done' : 'open' } : t)));
     await toggleTaskDone(taskId, nextDone);
@@ -107,7 +115,7 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <TasksContext.Provider value={{ tasks, activities, isLoading, activityError, refresh, addTask, runTask, toggleTask }}>
+    <TasksContext.Provider value={{ tasks, activities, isLoading, activityError, refresh, addTask, runTask, reviewTask, toggleTask }}>
       {children}
     </TasksContext.Provider>
   );
