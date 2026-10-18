@@ -2,21 +2,22 @@ import React from 'react';
 import { TouchableOpacity, Text, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from './Icon';
-import { C, FONTS } from '../constants/theme';
+import { C, FONTS, GRAD } from '../constants/theme';
 
 interface PrimaryButtonProps {
   children: React.ReactNode;
   onPress?: () => void;
   icon?: string;
+  iconPosition?: 'start' | 'end';
   style?: ViewStyle;
   disabled?: boolean;
 }
 
-export function PrimaryButton({ children, onPress, icon, style, disabled }: PrimaryButtonProps) {
+export function PrimaryButton({ children, onPress, icon, iconPosition = 'end', style, disabled }: PrimaryButtonProps) {
   return (
     <TouchableOpacity onPress={onPress} disabled={disabled} style={[{ borderRadius: 999, overflow: 'hidden' }, style]}>
       <LinearGradient
-        colors={['#a3e635', '#22d3ee', '#e879f9']}
+        colors={[...GRAD]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={{
@@ -30,6 +31,7 @@ export function PrimaryButton({ children, onPress, icon, style, disabled }: Prim
           opacity: disabled ? 0.6 : 1,
         }}
       >
+        {icon && iconPosition === 'start' && <Icon name={icon} size={18} color="#0a0a0a" strokeWidth={2.2} />}
         <Text
           style={{
             fontFamily: FONTS.semibold,
@@ -40,7 +42,7 @@ export function PrimaryButton({ children, onPress, icon, style, disabled }: Prim
         >
           {children}
         </Text>
-        {icon && <Icon name={icon} size={18} color="#0a0a0a" strokeWidth={2.2} />}
+        {icon && iconPosition === 'end' && <Icon name={icon} size={18} color="#0a0a0a" strokeWidth={2.2} />}
       </LinearGradient>
     </TouchableOpacity>
   );
