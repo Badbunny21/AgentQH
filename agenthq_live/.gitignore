@@ -1,0 +1,4 @@
+state.json
+agenthq.db*
+.venv/
+state.tmp
