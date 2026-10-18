@@ -16,9 +16,12 @@ type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList>;
 };
 
-function StatBlock({ value, label }: { value: string | number; label: string }) {
+function StatBlock({ value, label, icon, tint }: { value: string | number; label: string; icon: string; tint: string }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.c1, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 16, padding: 12 }}>
+      <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: `${tint}1f`, alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+        <Icon name={icon} size={13} color={tint} />
+      </View>
       <Text style={{ fontFamily: FONTS.semibold, fontSize: 26, color: C.text, letterSpacing: -0.7, lineHeight: 29 }}>
         {value}
       </Text>
@@ -64,16 +67,38 @@ export default function TasksScreen({ navigation }: Props) {
           </View>
           <TouchableOpacity
             onPress={() => setShowAdd(true)}
-            style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.c2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}
           >
             <Icon name="plus" size={18} color={C.text} />
           </TouchableOpacity>
         </View>
 
+        {/* Status pill */}
+        <View style={{ paddingHorizontal: 20, paddingBottom: 14, flexDirection: 'row' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              backgroundColor: 'rgba(163,230,53,0.12)',
+              borderWidth: 1,
+              borderColor: 'rgba(163,230,53,0.35)',
+              borderRadius: 999,
+              paddingHorizontal: 12,
+              paddingVertical: 5,
+            }}
+          >
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.a }} />
+            <Text style={{ fontFamily: FONTS.medium, fontSize: 12, color: C.a }}>
+              {openTasks.length === 0 ? 'Board clear' : `${openTasks.length} open`}
+            </Text>
+          </View>
+        </View>
+
         <View style={{ paddingHorizontal: 20, paddingBottom: 12, flexDirection: 'row', gap: 8 }}>
-          <StatBlock value={visibleTasks.length} label="Total" />
-          <StatBlock value={doneTasks.length} label="Done" />
-          <StatBlock value={openTasks.length} label="Open" />
+          <StatBlock value={visibleTasks.length} label="Total" icon="sigma" tint={C.c} />
+          <StatBlock value={doneTasks.length} label="Done" icon="check" tint={C.a} />
+          <StatBlock value={openTasks.length} label="Open" icon="target" tint={C.b} />
         </View>
 
         {activeWorkspace && (
@@ -112,11 +137,16 @@ export default function TasksScreen({ navigation }: Props) {
                 <TaskRow board key={task.id} task={task} onToggle={toggleTask} onPress={setSelectedTask} />
               ))}
               {openTasks.length === 0 && (
-                <View style={{ padding: 24, alignItems: 'center', gap: 12 }}>
-                  <Text style={{ fontFamily: FONTS.regular, fontSize: 13, color: C.textDim, textAlign: 'center' }}>
-                    No open tasks. Assign a task to an agent to get started.
-                  </Text>
-                  <PrimaryButton onPress={() => setShowAdd(true)} icon="plus">New task</PrimaryButton>
+                <View style={{ padding: 20, backgroundColor: C.c1, borderWidth: 1, borderColor: C.border, borderRadius: C.radius }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                    <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(163,230,53,0.14)', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="target" size={17} color={C.a} />
+                    </View>
+                    <Text style={{ flex: 1, fontFamily: FONTS.medium, fontSize: 15, color: C.text, letterSpacing: -0.2 }}>
+                      {visibleTasks.length === 0 ? 'Assign the first task. It lands here.' : 'No open tasks.'}
+                    </Text>
+                  </View>
+                  <PrimaryButton onPress={() => setShowAdd(true)} icon="plus" style={{ alignSelf: 'stretch' }}>New task</PrimaryButton>
                 </View>
               )}
             </View>
