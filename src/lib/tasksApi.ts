@@ -1,5 +1,12 @@
 import { supabase } from './supabase';
 
+export type TelegramTaskState =
+  | 'SENT'
+  | 'REPLY_RECEIVED'
+  | 'NEEDS_REVIEW'
+  | 'REVIEWED'
+  | 'TIMED_OUT';
+
 export interface Task {
   id: string;
   title: string;
@@ -10,6 +17,17 @@ export interface Task {
   result: string | null;
   executionError: string | null;
   executedAt: string | null;
+  telegramState: TelegramTaskState | null;
+  telegramBotId: number | null;
+  telegramChatId: number | null;
+  telegramOutboundMessageId: number | null;
+  telegramReplyMessageId: number | null;
+  telegramReplyUpdateId: number | null;
+  sentAt: string | null;
+  replyReceivedAt: string | null;
+  reviewedAt: string | null;
+  replyDeadlineAt: string | null;
+  timedOutAt: string | null;
 }
 
 interface TaskRow {
@@ -22,6 +40,17 @@ interface TaskRow {
   result: string | null;
   execution_error: string | null;
   executed_at: string | null;
+  telegram_state: TelegramTaskState | null;
+  telegram_bot_id: number | null;
+  telegram_chat_id: number | null;
+  telegram_outbound_message_id: number | null;
+  telegram_reply_message_id: number | null;
+  telegram_reply_update_id: number | null;
+  sent_at: string | null;
+  reply_received_at: string | null;
+  reviewed_at: string | null;
+  reply_deadline_at: string | null;
+  timed_out_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +75,17 @@ function rowToTask(row: TaskRow): Task {
     result: row.result ?? null,
     executionError: row.execution_error ?? null,
     executedAt: row.executed_at ?? null,
+    telegramState: row.telegram_state ?? null,
+    telegramBotId: row.telegram_bot_id ?? null,
+    telegramChatId: row.telegram_chat_id ?? null,
+    telegramOutboundMessageId: row.telegram_outbound_message_id ?? null,
+    telegramReplyMessageId: row.telegram_reply_message_id ?? null,
+    telegramReplyUpdateId: row.telegram_reply_update_id ?? null,
+    sentAt: row.sent_at ?? null,
+    replyReceivedAt: row.reply_received_at ?? null,
+    reviewedAt: row.reviewed_at ?? null,
+    replyDeadlineAt: row.reply_deadline_at ?? null,
+    timedOutAt: row.timed_out_at ?? null,
   };
 }
 
@@ -95,9 +135,35 @@ export async function toggleTaskDone(
       status: done ? 'done' : 'open',
       updated_at: new Date().toISOString(),
     })
-    .eq('id', taskId);
+    .eq('id', taskId)
+    .is('telegram_state', null);
 
   return { error: error?.message ?? null };
+}
+
+export async function markTaskReviewed(
+  userId: string,
+  taskId: string
+): Promise<{ task: Task | null; error: string | null }> {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({
+      telegram_state: 'REVIEWED',
+      reviewed_at: now,
+      status: 'done',
+      done: true,
+      updated_at: now,
+    })
+    .eq('id', taskId)
+    .eq('user_id', userId)
+    .in('telegram_state', ['REPLY_RECEIVED', 'NEEDS_REVIEW'])
+    .select()
+    .maybeSingle();
+
+  if (error) return { task: null, error: error.message };
+  if (!data) return { task: null, error: 'Task not found or not ready for review' };
+  return { task: rowToTask(data as TaskRow), error: null };
 }
 
 export async function dispatchTask(taskId: string): Promise<{
